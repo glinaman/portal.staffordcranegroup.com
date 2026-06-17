@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1b2e">
+  <script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
+  <title>Backlog / WIP — SCG Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+:root{
+    --navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;
+  --orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
+      --green:#2ecc71;--red:#e74c3c;--blue:#3498db;
+      --text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;
+      --border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);
+}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
+body{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:11px;letter-spacing:0.5px;transition:color 0.15s;}
+.back-link:hover{color:var(--orange);}
+.tb-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);flex:1;text-align:center;}
+  .tb-role{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.content{flex:1;padding:22px 26px;max-width:1100px;width:100%;margin:0 auto;}
+  .ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+  .ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+    .as-of{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px;}
+.mc{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
+  .mv{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;margin-top:4px;}
+  .ms{font-size:10px;color:var(--text-muted);margin-top:3px;}
+  .ms.up{color:var(--green);}
+.ms.dn{color:var(--red);}
+.card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+  .ct i{color:var(--orange);font-size:15px;}
+.chart-wrap{position:relative;height:260px;}
+.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-muted);}
+  .locked i{font-size:40px;color:var(--text-dim);margin-bottom:14px;}
+.locked h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;color:var(--text-muted);}
+.locked p{font-size:11px;max-width:230px;}
+#wip-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
+  <div class="tb-title">Backlog &amp; WIP</div>
+  <div class="tb-role" id="tb-role"></div>
+</div>
+    <div class="content">
+  <div class="ph">
+        <div>
+          <div class="ptitle">Backlog &amp; WIP</div>
+      <div class="psub">Contract value, billings, and remaining pipeline</div>
+        </div>
+        <div class="as-of" id="as-of"></div>
+  </div>
+  <div id="wip-loading">Loading data&hellip;</div>
+      <div id="wip-content" style="display:none;">
+        <div class="g3">
+      <div class="mc"><div class="ml">Total Contract Value</div><div class="mv" id="kpi-contract">—</div><div class="ms" id="kpi-contract-sub"></div></div>
+          <div class="mc"><div class="ml">Billed to Date</div><div class="mv" id="kpi-billed">—</div><div class="ms" id="kpi-billed-sub"></div></div>
+      <div class="mc"><div class="ml">Remaining Backlog</div><div class="mv" id="kpi-remaining">—</div><div class="ms" id="kpi-remaining-sub"></div></div>
+    </div>
+        <div class="card">
+          <div class="ct"><i class="ti ti-chart-bar"></i> Contract Value vs. Billed by Month</div>
+      <div class="chart-wrap"><canvas id="chart-stacked"></canvas></div>
+        </div>
+        <div class="card">
+      <div class="ct"><i class="ti ti-trending-up"></i> % Complete Over Time</div>
+        <div class="chart-wrap"><canvas id="chart-pct"></canvas></div>
+      </div>
+    </div>
+  <div id="wip-locked" class="locked" style="display:none;">
+      <i class="ti ti-lock"></i>
+    <h3>Executive Access Only</h3>
+      <p>This section is restricted to Admin and Executive members.</p>
+    </div>
+</div>
+<script>
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3/pub?gid=1625713028&single=true&output=csv';
+
+function fmtM(n){ return '$'+(n/1e6).toFixed(1)+'M'; }
+function fmtPct(n){ return n.toFixed(1)+'%'; }
+
+function parseCSV(text){
+    const lines = text.trim().split('\n');
+  const dataRows = [];
+  for(let i=0;i<lines.length;i++){
+    const cols = lines[i].split(',').map(c=>c.replace(/"/g,'').trim());
+          const raw = cols[0].replace(/[\$\s]/g,'');
+          if(raw.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/) || raw.match(/^\d{1,2}\/\d{2,4}$/)){
+            dataRows.push(cols);
+  }
+}
+  return dataRows;
+}
+
+function fmtLabel(dateStr){
+    const clean = dateStr.replace(/[\$\s"]/g,'').trim();
+        const parts = clean.split('/');
+  if(parts.length < 2) return clean;
+  const month = parseInt(parts[0])-1;
+  const year = parts.length===3 ? 2000+parseInt(parts[2]) : 2000+parseInt(parts[1]);
+  const d = new Date(year, month, 1);
+  return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+}
+
+function parseNum(s){
+  return parseFloat((s||'').replace(/[\$,\%\s"]/g,'')) || 0;
+}
+
+async function loadData(){
+  try{
+    const resp = await fetch(SHEET_CSV);
+    const text = await resp.text();
+    const rows = parseCSV(text);
+    if(!rows.length) throw new Error('no data');
+
+    const months    = rows.map(r=>fmtLabel(r[0]));
+    const contracts = rows.map(r=>parseNum(r[1]));
+    const billed    = rows.map(r=>parseNum(r[2]));
+    const remaining = rows.map(r=>parseNum(r[3]));
+    const pct       = rows.map(r=>parseNum(r[4]));
+
+    const last = rows.length-1;
+    document.getElementById('kpi-contract').textContent  = fmtM(contracts[last]);
+    document.getElementById('kpi-billed').textContent    = fmtM(billed[last]);
+    document.getElementById('kpi-remaining').textContent = fmtM(remaining[last]);
+    document.getElementById('kpi-contract-sub').textContent  = 'Total contracted work';
+    document.getElementById('kpi-billed-sub').textContent    = fmtPct(pct[last])+' complete';
+    document.getElementById('kpi-remaining-sub').textContent = 'As of '+months[last];
+    document.getElementById('as-of').textContent             = 'Data as of '+months[last];
+
+    const scaleX = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.05)'}};
+    const scaleYdollar = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:v=>'$'+(v/1e6).toFixed(0)+'M'},grid:{color:'rgba(255,255,255,0.05)'}};
+    const legend = {labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
+
+    new Chart(document.getElementById('chart-stacked'),{
+      type:'bar',
+      data:{
+        labels:months,
+        datasets:[
+{label:'Billed to Date',data:billed,backgroundColor:'#e87722',borderRadius:3},
+{label:'Remaining',data:remaining,backgroundColor:'rgba(255,255,255,0.08)',borderRadius:3}
+        ]
+},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend},
+        scales:{x:{...scaleX,stacked:true},y:{...scaleYdollar,stacked:true}}}
+});
+
+    new Chart(document.getElementById('chart-pct'),{
+      type:'line',
+      data:{
+        labels:months,
+        datasets:[{
+          label:'% Complete',data:pct,
+          borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',
+          pointBackgroundColor:'#e87722',tension:0.3,fill:true
+}]
+},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend},
+        scales:{x:scaleX,y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:v=>v+'%'},
+          grid:{color:'rgba(255,255,255,0.05)'},min:50,max:75}}}
+});
+
+} catch(e){
+    console.error('WIP load error:',e);
+    document.getElementById('as-of').textContent='Data unavailable';
+}
+}
+
+function showWip(role){
+  document.getElementById('wip-loading').style.display='none';
+  document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';
+  if(role==='admin'||role==='exec'){
+    document.getElementById('wip-content').style.display='block';
+    document.getElementById('wip-locked').style.display='none';
+    loadData();
+} else {
+    document.getElementById('wip-content').style.display='none';
+    document.getElementById('wip-locked').style.display='flex';
+}
+}
+
+function checkMember(){
+  if(window.$memberstackDom){
+    window.$memberstackDom.getCurrentMember().then(function(result){
+      var member=result.data;
+      if(!member){window.location.href='index.html';return;}
+      var role='employee';
+      if(member.planConnections&&member.planConnections.length>0){
+        var planId=(member.planConnections[0].planId||'').toLowerCase();
+        if(planId.includes('admin')) role='admin';
+        else if(planId.includes('exec')) role='exec';
+}
+      showWip(role);
+});
+} else {
+    setTimeout(checkMember,100);
+}
+}
+checkMember();
+</script>
+</body>
+</html>
