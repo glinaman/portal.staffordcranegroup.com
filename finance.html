@@ -37,7 +37,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 
 .section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
-.section-date{margin-left:auto;font-size:11px;letter-spacing:1px;color:var(--text-muted);font-weight:400;text-transform:uppercase;}
+.section-date{font-size:11px;letter-spacing:1px;color:var(--text-muted);font-weight:400;text-transform:uppercase;}
 
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
@@ -83,10 +83,10 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div id="fin-content" style="display:none;">
 <div class="section-label">Current <span class="section-date" id="kpi-date"></span></div>
 <div class="g4" style="margin-bottom:14px;">
-<div class="mc"><div class="ml">YTD Revenue</div><div class="mv" id="kpi-rev">—</div><div class="ms" id="kpi-rev-sub"></div></div>
+<div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-rev">—</div><div class="ms" id="kpi-rev-sub"></div></div>
 <div class="mc"><div class="ml">Adj EBITDA</div><div class="mv" id="kpi-ebitda">—</div><div class="ms" id="kpi-ebitda-sub"></div></div>
 <div class="mc"><div class="ml">Backlog</div><div class="mv" id="kpi-backlog">—</div><div class="ms" id="kpi-backlog-sub"></div></div>
-<div class="mc"><div class="ml">Flex Worker Hrs</div><div class="mv" id="kpi-labor">—</div><div class="ms" id="kpi-labor-sub"></div></div>
+<div class="mc"><div class="ml">Flex Worker Hrs</div><div class="mv" id="kpi-labor">—</div><div class="ms" id="kpi-labor-sub">Data pending</div></div>
 </div>
 <div class="g2">
 <div class="card"><div class="ct"><i class="ti ti-chart-bar"></i> Utilization &amp; Events</div><div style="height:80px;background:var(--navy-light);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);">Embedded Google Sheet Chart — live data</div></div>
@@ -103,11 +103,15 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 
 <script>
-var SHEET = '1XuuBSFqCviem0taDcW68NHeL_FsZEQ1WPZ7go-iaGqA';
+var PUB = '2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3';
 
-function csvFetch(gid) {
-  return fetch('https://docs.google.com/spreadsheets/d/' + SHEET + '/pub?single=true&output=csv&gid=' + gid)
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); });
+function csvFetch(gid, cb) {
+  var url = 'https://docs.google.com/spreadsheets/d/e/' + PUB + '/pub?single=true&output=csv&gid=' + gid;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.onload = function(){ if(xhr.status === 200) cb(null, xhr.responseText); else cb(new Error('HTTP '+xhr.status)); };
+  xhr.onerror = function(){ cb(new Error('Network error')); };
+  xhr.send();
 }
 
 function parseCSV(text) {
@@ -125,78 +129,90 @@ function parseCSV(text) {
   });
 }
 
+function toNum(v) {
+  return parseFloat(String(v).replace(/[^0-9.-]/g,''));
+}
+
 function fmtM(v) {
-  var n = parseFloat(String(v).replace(/[^0-9.-]/g,''));
+  var n = toNum(v);
   if (isNaN(n)) return '—';
-  return '$' + (n/1000000).toFixed(1) + 'M';
+  var abs = Math.abs(n);
+  var sign = n < 0 ? '-' : '';
+  if (abs >= 1000000) return sign + '$' + (abs/1000000).toFixed(1) + 'M';
+  if (abs >= 1000) return sign + '$' + (abs/1000).toFixed(0) + 'K';
+  return sign + '$' + abs.toFixed(0);
 }
 
-function fmtK(v) {
-  var n = parseFloat(String(v).replace(/[^0-9.-]/g,''));
-  if (isNaN(n)) return '—';
-  if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-  if (Math.abs(n) >= 1000) return '$' + (n/1000).toFixed(0) + 'K';
-  return '$' + n.toFixed(0);
+function setText(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+function setClass(id, cls) { var el=document.getElementById(id); if(el) el.className='ms'+(cls?' '+cls:''); }
+
+function loadFinancial() {
+  // Financial sheet: rows are metrics, cols are months, last col = TTM
+  csvFetch('234022854', function(err, text) {
+    if (err) return;
+    var rows = parseCSV(text);
+    // Row 1 = header row with month labels; last col label = TTM
+    var header = rows[1] || [];
+    var lastCol = header.length - 1;
+    var ttmLabel = header[lastCol] || 'TTM';
+    // Find Revenue and EBITDA rows by label in col[0]
+    var revRow = null, ebitdaRow = null;
+    for (var i = 2; i < rows.length; i++) {
+      var label = (rows[i][0] || '').toLowerCase();
+      if (!revRow && label === 'revenue') revRow = rows[i];
+      if (!ebitdaRow && (label === 'ebitda' || label === 'adjusted ebitda')) ebitdaRow = rows[i];
+    }
+    if (!ebitdaRow) {
+      for (var j = 2; j < rows.length; j++) {
+        if ((rows[j][0]||'').toLowerCase() === 'ebitda') { ebitdaRow = rows[j]; break; }
+      }
+    }
+    // Get the most recent month column (second to last col = last real month)
+    var recentCol = lastCol - 1;
+    var recentMonth = header[recentCol] || '';
+    setText('kpi-date', recentMonth);
+
+    if (revRow) {
+      var ttmRev = toNum(revRow[lastCol]);
+      setText('kpi-rev', fmtM(ttmRev));
+      setText('kpi-rev-sub', 'Trailing 12 months');
+    }
+    if (ebitdaRow) {
+      var ttmEbitda = toNum(ebitdaRow[lastCol]);
+      setText('kpi-ebitda', fmtM(ttmEbitda));
+      setText('kpi-ebitda-sub', ttmEbitda >= 0 ? 'Positive TTM' : 'Negative TTM');
+      setClass('kpi-ebitda-sub', ttmEbitda >= 0 ? 'up' : 'dn');
+    }
+  });
 }
 
-function fmtNum(v) {
-  var n = parseFloat(String(v).replace(/[^0-9.-]/g,''));
-  if (isNaN(n)) return '—';
-  return n.toLocaleString();
-}
-
-function setCard(id, val, subId, subText, subClass) {
-  var el = document.getElementById(id);
-  if (el) el.textContent = val;
-  if (subId) {
-    var sub = document.getElementById(subId);
-    if (sub) { sub.textContent = subText || ''; if(subClass) sub.className = 'ms ' + subClass; }
-  }
+function loadBacklog() {
+  // Backlog sheet: col0=Month, col1=ContractAmt, col2=BilledToDate, col3=Remaining, col4=%Complete
+  csvFetch('1625713028', function(err, text) {
+    if (err) return;
+    var rows = parseCSV(text);
+    // Find last row where col[0] looks like a date (skip header/note rows)
+    var lastData = null;
+    for (var i = rows.length - 1; i >= 0; i--) {
+      var d = rows[i][0] || '';
+      if (d.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) { lastData = rows[i]; break; }
+    }
+    if (!lastData) return;
+    var remaining = toNum(lastData[3]);
+    var pct = lastData[4] || '';
+    var rawDate = lastData[0];
+    // Format date as Mon YY
+    var dateObj = new Date(rawDate);
+    var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var label = isNaN(dateObj.getTime()) ? rawDate : mo[dateObj.getMonth()] + ' ' + String(dateObj.getFullYear()).slice(2);
+    setText('kpi-backlog', fmtM(remaining));
+    setText('kpi-backlog-sub', 'As of ' + label);
+  });
 }
 
 function loadKPIs() {
-  // Financial sheet: YTD Revenue (col 1) and Adj EBITDA (col 2), col 0 = Month
-  csvFetch('234022854').then(function(text) {
-    var rows = parseCSV(text);
-    if (rows.length < 2) return;
-    var last = rows[rows.length - 1];
-    var month = last[0] || '';
-    document.getElementById('kpi-date').textContent = month;
-    var rev = parseFloat(String(last[1]).replace(/[^0-9.-]/g,''));
-    var ebitda = parseFloat(String(last[2]).replace(/[^0-9.-]/g,''));
-    setCard('kpi-rev', fmtM(last[1]), 'kpi-rev-sub', 'YTD through ' + month, '');
-    setCard('kpi-ebitda', fmtM(last[2]), 'kpi-ebitda-sub', ebitda >= 0 ? 'Positive' : 'Negative', ebitda >= 0 ? 'up' : 'dn');
-  }).catch(function(){ /* Financial sheet not published yet — leave dashes */ });
-
-  // Backlog sheet: col 0=Month, col 3=Remaining Backlog
-  csvFetch('1625713028').then(function(text) {
-    var rows = parseCSV(text);
-    if (rows.length < 2) return;
-    var last = rows[rows.length - 1];
-    var month = last[0] || '';
-    setCard('kpi-backlog', fmtM(last[3]), 'kpi-backlog-sub', 'As of ' + month, '');
-    // If date not set yet from Financial sheet, use backlog date
-    var dateEl = document.getElementById('kpi-date');
-    if (dateEl && !dateEl.textContent) dateEl.textContent = month;
-  }).catch(function(){});
-
-  // Labor sheet: col 0=Month, col 1=Flex Worker Hrs (adjust if needed)
-  csvFetch('799908633').then(function(text) {
-    var rows = parseCSV(text);
-    if (rows.length < 2) return;
-    // Find header row to identify the flex hours column
-    var header = rows[0];
-    var flexCol = 1; // default
-    for (var i = 0; i < header.length; i++) {
-      if (header[i] && header[i].toLowerCase().indexOf('flex') !== -1) { flexCol = i; break; }
-      if (header[i] && header[i].toLowerCase().indexOf('hrs') !== -1) { flexCol = i; break; }
-      if (header[i] && header[i].toLowerCase().indexOf('hour') !== -1) { flexCol = i; break; }
-    }
-    var last = rows[rows.length - 1];
-    var month = last[0] || '';
-    var hrs = parseFloat(String(last[flexCol]).replace(/[^0-9.-]/g,''));
-    setCard('kpi-labor', isNaN(hrs) ? '—' : hrs.toLocaleString(), 'kpi-labor-sub', 'As of ' + month, '');
-  }).catch(function(){});
+  loadFinancial();
+  loadBacklog();
 }
 
 function showFinance(role){
