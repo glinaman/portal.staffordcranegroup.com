@@ -91,7 +91,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   </div>
 </div>
 <script>
-var SHEET_CSV='https://docs.google.com/spreadsheets/d/1XuuBSFqCviem0taDcW68NHeL_FsZEQ1WPZ7go-iaGqA/pub?single=true&output=csv&gid=234022854';
+var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3/pub?single=true&output=csv&gid=234022854';
 function fmtM(n){if(Math.abs(n)>=1e6)return(n<0?'-':'')+'$'+(Math.abs(n)/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return(n<0?'-':'')+'$'+(Math.abs(n)/1e3).toFixed(0)+'K';return(n<0?'-':'')+'$'+Math.abs(n).toFixed(0);}
 function fmtPct(n){return n.toFixed(1)+'%';}
 function parseNum(s){return parseFloat((s||'').replace(/[$,%s"]/g,''))||0;}
