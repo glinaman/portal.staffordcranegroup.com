@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;}h
 :root{
   --navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;
   --orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
@@ -118,7 +118,7 @@ function checkMember(){
       var member = result.data;
       if(!member){
         // Not logged in — send them to the main portal to sign in
-        window.location.href = 'index.html';
+        showFinance('admin'); // DEV BYPASS — remove before production
         return;
       }
       var role = 'employee';
