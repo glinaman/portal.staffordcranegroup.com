@@ -37,6 +37,8 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ms{font-size:10px;color:var(--text-muted);margin-top:3px;}
 .ms.up{color:var(--green);}
 .ms.dn{color:var(--red);}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+.section-label span{flex:1;height:1px;background:var(--border);}
 .card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
 .ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
 .ct i{color:var(--orange);font-size:15px;}
@@ -64,11 +66,13 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 <div id="wip-loading">Loading data&hellip;</div>
 <div id="wip-content" style="display:none;">
+<div class="section-label">Current <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
 <div class="g3">
 <div class="mc"><div class="ml">Total Contract Value</div><div class="mv" id="kpi-contract">&mdash;</div><div class="ms" id="kpi-contract-sub"></div></div>
 <div class="mc"><div class="ml">Billed to Date</div><div class="mv" id="kpi-billed">&mdash;</div><div class="ms" id="kpi-billed-sub"></div></div>
 <div class="mc"><div class="ml">Remaining Backlog</div><div class="mv" id="kpi-remaining">&mdash;</div><div class="ms" id="kpi-remaining-sub"></div></div>
 </div>
+<div class="section-label" style="margin-top:8px;">Historical <span></span></div>
 <div class="card">
 <div class="ct"><i class="ti ti-chart-bar"></i> Contract Value vs. Billed by Month</div>
 <div class="chart-wrap"><canvas id="chart-stacked"></canvas></div>
@@ -144,6 +148,8 @@ function loadData(){
     document.getElementById('kpi-billed-sub').textContent = fmtPct(pct[last])+' complete';
     document.getElementById('kpi-remaining-sub').textContent = 'As of '+months[last];
     document.getElementById('as-of').textContent = 'Data as of '+months[last];
+var cdEl = document.getElementById('current-date');
+if(cdEl) cdEl.textContent = months[last];
     var scaleX = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.05)'}};
     var scaleYdollar = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:function(v){ return '$'+(v/1e6).toFixed(0)+'M'; }},grid:{color:'rgba(255,255,255,0.05)'}};
     var legend = {labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
