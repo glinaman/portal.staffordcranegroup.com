@@ -11,13 +11,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-:root{
+:root{h
     --navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;
   --orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
       --green:#2ecc71;--red:#e74c3c;--blue:#3498db;
       --text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;
       --border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);
-}
+}h
 html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
 body{display:flex;flex-direction:column;min-height:100vh;}
 .topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
@@ -74,7 +74,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <div class="chart-wrap"><canvas id="chart-stacked"></canvas></div>
         </div>
         <div class="card">
-      <div class="ct"><i class="ti ti-trending-up"></i> % Complete Over Time</div>
+      <div class="ct"><i class="ti ti-trending-up"></i> Remaining to Bill Over Time</div>
         <div class="chart-wrap"><canvas id="chart-pct"></canvas></div>
       </div>
     </div>
@@ -149,7 +149,7 @@ async function loadData(){
         labels:months,
         datasets:[
 {label:'Billed to Date',data:billed,backgroundColor:'#e87722',borderRadius:3},
-{label:'Remaining',data:remaining,backgroundColor:'rgba(255,255,255,0.08)',borderRadius:3}
+{label:'Remaining',data:remaining,backgroundColor:'#3498db',borderRadius:3}
         ]
 },
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend},
@@ -161,7 +161,7 @@ async function loadData(){
       data:{
         labels:months,
         datasets:[{
-          label:'% Complete',data:pct,
+          label:'Remaining to Bill',data:remaining,
           borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',
           pointBackgroundColor:'#e87722',tension:0.3,fill:true
 }]
