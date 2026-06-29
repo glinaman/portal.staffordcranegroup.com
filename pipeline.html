@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1b2e">
+<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Sales Pipeline — SCG Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;--orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;--border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
+body{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:11px;letter-spacing:0.5px;transition:color 0.15s;}
+.back-link:hover{color:var(--orange);}
+.tb-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);flex:1;text-align:center;}
+.tb-role{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.content{flex:1;padding:22px 26px;max-width:1100px;width:100%;margin:0 auto;}
+.ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+.ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.as-of{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.mc{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
+.mv{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;margin-top:4px;}
+.ms{font-size:10px;color:var(--text-muted);margin-top:3px;}
+.ms.up{color:var(--green);}
+.ms.dn{color:var(--red);}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;margin-bottom:8px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+.section-label span{flex:1;height:1px;background:var(--border);}
+.card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.ct i{color:var(--orange);font-size:15px;}
+.chart-wrap{position:relative;height:260px;}
+.chart-wrap-sm{position:relative;height:220px;}
+.tabs{display:flex;gap:6px;margin-bottom:14px;}
+.tab-btn{background:var(--navy-card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+.tab-btn:hover{border-color:var(--border-o);color:var(--text);}
+.tab-btn.active{background:var(--orange-glow);border-color:var(--border-o);color:var(--orange);}
+.region-table{width:100%;border-collapse:collapse;font-size:12px;}
+.region-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
+.region-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+.region-table tr:last-child td{border-bottom:none;font-weight:600;color:var(--orange);}
+.region-table td:not(:first-child){text-align:right;}
+.region-table th:not(:first-child){text-align:right;}
+.win-bar-wrap{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:3px;}
+.win-bar{height:4px;background:var(--orange);border-radius:2px;}
+#pip-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
+  <div class="tb-title">Sales Pipeline</div>
+  <div class="tb-role" id="tb-role"></div>
+</div>
+<div class="content">
+  <div class="ph">
+    <div><div class="ptitle">Sales Pipeline</div><div class="psub">Quotes and wins by product type and region — rolling 12 months</div></div>
+    <div class="as-of" id="as-of"></div>
+  </div>
+  <div id="pip-loading">Loading data&hellip;</div>
+  <div id="pip-content" style="display:none;">
+    <div class="section-label">Last 12 Months <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
+    <div class="g4">
+      <div class="mc"><div class="ml">Total Quotes</div><div class="mv" id="kpi-quotes">&mdash;</div><div class="ms" id="kpi-quotes-sub"></div></div>
+      <div class="mc"><div class="ml">Total Wins</div><div class="mv" id="kpi-wins">&mdash;</div><div class="ms" id="kpi-wins-sub"></div></div>
+      <div class="mc"><div class="ml">Win Rate</div><div class="mv" id="kpi-rate">&mdash;</div><div class="ms" id="kpi-rate-sub"></div></div>
+      <div class="mc"><div class="ml">Avg Wins / Month</div><div class="mv" id="kpi-avg">&mdash;</div><div class="ms" id="kpi-avg-sub"></div></div>
+    </div>
+    <div class="section-label" style="margin-top:8px;">Monthly Trend <span></span></div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchView('all',event)">All</button>
+      <button class="tab-btn" onclick="switchView('tc',event)">Tower Crane</button>
+      <button class="tab-btn" onclick="switchView('hoist',event)">Hoist</button>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-chart-bar"></i> Quotes vs. Wins by Month</div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-trending-up"></i> Win Rate % by Month</div>
+      <div class="chart-wrap"><canvas id="chart-winrate"></canvas></div>
+    </div>
+    <div class="section-label">Regional Breakdown <span></span></div>
+    <div class="g2">
+      <div class="card">
+        <div class="ct"><i class="ti ti-building-skyscraper"></i> Tower Crane by Region</div>
+        <table class="region-table" id="table-tc"></table>
+      </div>
+      <div class="card">
+        <div class="ct"><i class="ti ti-crane"></i> Hoist by Region</div>
+        <table class="region-table" id="table-hoist"></table>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ct"><i class="ti ti-chart-donut"></i> Quotes by Product Type</div>
+        <div class="chart-wrap-sm"><canvas id="chart-split-quotes"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct"><i class="ti ti-chart-donut"></i> Wins by Product Type</div>
+        <div class="chart-wrap-sm"><canvas id="chart-split-wins"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var SHEET_CSV='https://docs.google.com/spreadsheets/d/100lbWmB0KnDlCdLAN-RGMU4scPLTI6K9Xn05oDT1thg/pub?gid=561957665&single=true&output=csv';
+var monthlyChart=null,winrateChart=null,allData={};
+function parseCSVLine(line){var cols=[],cur='',inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());return cols;}
+function pn(s){return parseInt((s||'0').replace(/[^0-9-]/g,''))||0;}
+function fmtPct(n){return n.toFixed(1)+'%';}
+function chartDef(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8ea3bc',font:{family:"'Barlow',sans-serif",size:11},boxWidth:12,padding:16}}},scales:{x:{ticks:{color:'#8ea3bc',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8ea3bc',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}}};}
+function buildMonthly(months,quotes,wins){if(monthlyChart)monthlyChart.destroy();var ctx=document.getElementById('chart-monthly').getContext('2d');monthlyChart=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Quotes',data:quotes,backgroundColor:'rgba(52,152,219,0.7)',borderRadius:3},{label:'Wins',data:wins,backgroundColor:'rgba(232,119,34,0.85)',borderRadius:3}]},options:chartDef()});}
+function buildWinRate(months,rates){if(winrateChart)winrateChart.destroy();var cd=chartDef();cd.scales.y.ticks.callback=function(v){return v+'%';};cd.scales.y.min=0;cd.scales.y.max=100;var ctx=document.getElementById('chart-winrate').getContext('2d');winrateChart=new Chart(ctx,{type:'line',data:{labels:months,datasets:[{label:'Win Rate %',data:rates,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.1)',pointBackgroundColor:'#e87722',tension:0.3,fill:true,borderWidth:2,pointRadius:4}]},options:cd});}
+function buildDonut(id,labels,vals,colors){var ctx=document.getElementById(id).getContext('2d');new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8ea3bc',font:{family:"'Barlow',sans-serif",size:11},boxWidth:12,padding:12}}}}});}
+function buildTable(id,rows){var tb=document.getElementById(id);var html='<thead><tr><th>Region</th><th>Quotes</th><th>Wins</th><th>Win %</th></tr></thead><tbody>';rows.forEach(function(r,idx){var q=r.quotes.reduce(function(a,b){return a+b;},0),w=r.wins.reduce(function(a,b){return a+b;},0),pct=q>0?(w/q*100):0,isTot=idx===rows.length-1;html+='<tr><td>'+r.name.replace(/^(TC|Hoist) - /,'')+'</td><td>'+q+'</td><td>'+w+'</td><td><div>'+fmtPct(pct)+'</div>'+(isTot?'':'<div class="win-bar-wrap"><div class="win-bar" style="width:'+Math.round(pct)+'%"></div></div>')+'</td></tr>';});html+='</tbody>';tb.innerHTML=html;}
+function switchView(view,evt){document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});evt.target.classList.add('active');var d=allData,months=d.months,qArr,wArr;if(view==='tc'){qArr=d.tcQ;wArr=d.tcW;}else if(view==='hoist'){qArr=d.hQ;wArr=d.hW;}else{qArr=months.map(function(_,i){return d.tcQ[i]+d.hQ[i];});wArr=months.map(function(_,i){return d.tcW[i]+d.hW[i];});}var rates=qArr.map(function(q,i){return q>0?Math.round(wArr[i]/q*1000)/10:0;});buildMonthly(months,qArr,wArr);buildWinRate(months,rates);}
+function loadData(){fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){var lines=text.trim().split('
+');if(lines.length<2)throw new Error('no data');var headers=parseCSVLine(lines[0]);var months=[];for(var i=1;i<headers.length;i+=2){months.push(headers[i].replace(/"/g,'').replace(' Quotes','').trim());}var tcRows=[],hoistRows=[],inTC=false,inHoist=false;for(var li=1;li<lines.length;li++){var cols=parseCSVLine(lines[li]);var lbl=cols[0].replace(/"/g,'').trim();if(!lbl)continue;if(lbl==='Tower Crane'){inTC=true;inHoist=false;continue;}if(lbl==='Hoist'){inHoist=true;inTC=false;continue;}var quotes=[],wins=[];for(var j=1;j<cols.length;j+=2){quotes.push(pn(cols[j]));wins.push(pn(cols[j+1]));}if(inTC)tcRows.push({name:lbl,quotes:quotes,wins:wins});else if(inHoist)hoistRows.push({name:lbl,quotes:quotes,wins:wins});}function monthSum(rows,key,idx){return rows.filter(function(r){return!r.name.includes('Total');}).reduce(function(s,r){return s+r[key][idx];},0);}var tcQ=months.map(function(_,i){return monthSum(tcRows,'quotes',i);});var tcW=months.map(function(_,i){return monthSum(tcRows,'wins',i);});var hQ=months.map(function(_,i){return monthSum(hoistRows,'quotes',i);});var hW=months.map(function(_,i){return monthSum(hoistRows,'wins',i);});var allQ=months.map(function(_,i){return tcQ[i]+hQ[i];});var allW=months.map(function(_,i){return tcW[i]+hW[i];});var rates=allQ.map(function(q,i){return q>0?Math.round(allW[i]/q*1000)/10:0;});var totQ=allQ.reduce(function(a,b){return a+b;},0),totW=allW.reduce(function(a,b){return a+b;},0),winRate=totQ>0?(totW/totQ*100):0,avgW=totW/months.length;var lastQ=allQ[allQ.length-1],prevQ=allQ[allQ.length-2]||0,lastW=allW[allW.length-1],prevW=allW[allW.length-2]||0,lastRate=rates[rates.length-1],prevRate=rates[rates.length-2]||0;function dc(a,b){return a>=b?'up':'dn';}function ds(a,b){var d=a-b;return(d>=0?'+':'')+d;}function dp(a,b){var d=a-b;return(d>=0?'+':'')+d.toFixed(1)+'pp vs prior mo';}document.getElementById('kpi-quotes').textContent=totQ;document.getElementById('kpi-quotes-sub').textContent=ds(lastQ,prevQ)+' vs prior mo';document.getElementById('kpi-quotes-sub').className='ms '+dc(lastQ,prevQ);document.getElementById('kpi-wins').textContent=totW;document.getElementById('kpi-wins-sub').textContent=ds(lastW,prevW)+' vs prior mo';document.getElementById('kpi-wins-sub').className='ms '+dc(lastW,prevW);document.getElementById('kpi-rate').textContent=fmtPct(winRate);document.getElementById('kpi-rate-sub').textContent=dp(lastRate,prevRate);document.getElementById('kpi-rate-sub').className='ms '+dc(lastRate,prevRate);document.getElementById('kpi-avg').textContent=avgW.toFixed(1);document.getElementById('kpi-avg-sub').textContent='wins per month';document.getElementById('kpi-avg-sub').className='ms';document.getElementById('current-date').textContent=months[months.length-1];document.getElementById('as-of').textContent='Data through '+months[months.length-1];allData={months:months,tcQ:tcQ,tcW:tcW,hQ:hQ,hW:hW};buildMonthly(months,allQ,allW);buildWinRate(months,rates);buildTable('table-tc',tcRows);buildTable('table-hoist',hoistRows);var tcTQ=tcQ.reduce(function(a,b){return a+b;},0),hTQ=hQ.reduce(function(a,b){return a+b;},0),tcTW=tcW.reduce(function(a,b){return a+b;},0),hTW=hW.reduce(function(a,b){return a+b;},0);buildDonut('chart-split-quotes',['Tower Crane','Hoist'],[tcTQ,hTQ],['#3498db','#e87722']);buildDonut('chart-split-wins',['Tower Crane','Hoist'],[tcTW,hTW],['#3498db','#e87722']);if(window.$memberstackDom){window.$memberstackDom.getCurrentMember().then(function(r){if(r&&r.data)document.getElementById('tb-role').textContent=r.data.planConnections?.[0]?.planName||'';});}document.getElementById('pip-loading').style.display='none';document.getElementById('pip-content').style.display='block';}).catch(function(err){document.getElementById('pip-loading').innerHTML='Error loading data.';console.error(err);});}
+loadData();
+</script>
+</body>
+</html>
