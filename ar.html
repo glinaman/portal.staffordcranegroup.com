@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1b2e">
+<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
+<title>AR / AP Aging — SCG Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+--navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;
+--orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
+--green:#2ecc71;--red:#e74c3c;--blue:#3498db;
+--text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;
+--border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);
+}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
+body{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:11px;letter-spacing:0.5px;transition:color 0.15s;}
+.back-link:hover{color:var(--orange);}
+.tb-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);flex:1;text-align:center;}
+.tb-role{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.content{flex:1;padding:22px 26px;max-width:1100px;width:100%;margin:0 auto;}
+.ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+.ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.as-of{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.mc{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.mc.ar-border{border-left:3px solid var(--orange);}
+.mc.ap-border{border-left:3px solid var(--blue);}
+.ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
+.mv{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;margin-top:4px;}
+.mv.orange{color:var(--orange);}
+.mv.blue{color:var(--blue);}
+.ms{font-size:10px;color:var(--text-muted);margin-top:3px;}
+.ms.up{color:var(--green);}
+.ms.dn{color:var(--red);}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;margin-bottom:8px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+.section-label span{flex:1;height:1px;background:var(--border);}
+.card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.ct i{color:var(--orange);font-size:15px;}
+.chart-wrap{position:relative;height:260px;}
+.aging-bar{display:flex;border-radius:6px;overflow:hidden;height:28px;margin-bottom:6px;}
+.aging-bar div{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:rgba(255,255,255,0.85);min-width:0;transition:width 0.4s;}
+.aging-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+.aging-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
+.aging-legend-item .dot{width:10px;height:10px;border-radius:2px;}
+.ar0{background:#2ecc71;} .ar30{background:#f39c12;} .ar60{background:#e67e22;} .ar90{background:#e74c3c;}
+.ap0{background:#3498db;} .ap30{background:#9b59b6;} .ap60{background:#e67e22;} .ap90{background:#e74c3c;}
+#ar-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="topbar">
+<a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
+<div class="tb-title">AR / AP Aging</div>
+<div class="tb-role" id="tb-role"></div>
+</div>
+<div class="content">
+<div class="ph">
+<div>
+<div class="ptitle">AR / AP Aging</div>
+<div class="psub">Accounts receivable and payable aging — weekly snapshots</div>
+</div>
+<div class="as-of" id="as-of"></div>
+</div>
+<div id="ar-loading">Loading data&hellip;</div>
+<div id="ar-content" style="display:none;">
+<div class="section-label">Accounts Receivable <span></span></div>
+<div class="g2" style="margin-bottom:12px;">
+<div class="mc ar-border"><div class="ml">AR Total</div><div class="mv orange" id="kpi-ar-total">&mdash;</div><div class="ms" id="kpi-ar-total-sub"></div></div>
+<div class="mc ar-border"><div class="ml">AR Past Due (&gt;30 days)</div><div class="mv" id="kpi-ar-pastdue">&mdash;</div><div class="ms" id="kpi-ar-pastdue-sub"></div></div>
+</div>
+<div class="g4">
+<div class="mc"><div class="ml">Current (0-30)</div><div class="mv" id="kpi-ar0">&mdash;</div></div>
+<div class="mc"><div class="ml">30-60 Days</div><div class="mv" id="kpi-ar30">&mdash;</div></div>
+<div class="mc"><div class="ml">60-90 Days</div><div class="mv" id="kpi-ar60">&mdash;</div></div>
+<div class="mc"><div class="ml">&gt;90 Days</div><div class="mv" id="kpi-ar90">&mdash;</div></div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-bar-stacked"></i> AR Aging Mix (Latest Week)</div>
+<div class="aging-bar" id="ar-aging-bar"></div>
+<div class="aging-legend">
+<div class="aging-legend-item"><div class="dot ar0"></div>0-30 Days</div>
+<div class="aging-legend-item"><div class="dot ar30"></div>30-60 Days</div>
+<div class="aging-legend-item"><div class="dot ar60"></div>60-90 Days</div>
+<div class="aging-legend-item"><div class="dot ar90"></div>&gt;90 Days</div>
+</div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-line"></i> AR Total Over Time</div>
+<div class="chart-wrap"><canvas id="chart-ar-total"></canvas></div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-bar"></i> AR Aging Breakdown by Week</div>
+<div class="chart-wrap"><canvas id="chart-ar-aging"></canvas></div>
+</div>
+<div class="section-label" style="margin-top:6px;">Accounts Payable <span></span></div>
+<div class="g2" style="margin-bottom:12px;">
+<div class="mc ap-border"><div class="ml">AP Total</div><div class="mv blue" id="kpi-ap-total">&mdash;</div><div class="ms" id="kpi-ap-total-sub"></div></div>
+<div class="mc ap-border"><div class="ml">AP Past Due (&gt;30 days)</div><div class="mv" id="kpi-ap-pastdue">&mdash;</div><div class="ms" id="kpi-ap-pastdue-sub"></div></div>
+</div>
+<div class="g4">
+<div class="mc"><div class="ml">Current (0-30)</div><div class="mv" id="kpi-ap0">&mdash;</div></div>
+<div class="mc"><div class="ml">30-60 Days</div><div class="mv" id="kpi-ap30">&mdash;</div></div>
+<div class="mc"><div class="ml">60-90 Days</div><div class="mv" id="kpi-ap60">&mdash;</div></div>
+<div class="mc"><div class="ml">&gt;90 Days</div><div class="mv" id="kpi-ap90">&mdash;</div></div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-bar-stacked"></i> AP Aging Mix (Latest Week)</div>
+<div class="aging-bar" id="ap-aging-bar"></div>
+<div class="aging-legend">
+<div class="aging-legend-item"><div class="dot ap0"></div>0-30 Days</div>
+<div class="aging-legend-item"><div class="dot ap30"></div>30-60 Days</div>
+<div class="aging-legend-item"><div class="dot ap60"></div>60-90 Days</div>
+<div class="aging-legend-item"><div class="dot ap90"></div>&gt;90 Days</div>
+</div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-line"></i> AP Total Over Time</div>
+<div class="chart-wrap"><canvas id="chart-ap-total"></canvas></div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-bar"></i> AP Aging Breakdown by Week</div>
+<div class="chart-wrap"><canvas id="chart-ap-aging"></canvas></div>
+</div>
+</div>
+</div>
+<script>
+var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vRNveEUm8eJ6yrdL_JenToiVjmLteRYDEHZWyYVbLub5teQfsgedXiDH35hFtK16DrAItp6w86Psu3Z/pub?output=csv';
+function fmtM(n){var abs=Math.abs(n);if(abs>=1e6)return '$'+(n/1e6).toFixed(1)+'M';if(abs>=1e3)return '$'+(n/1e3).toFixed(0)+'K';return '$'+n.toFixed(0);}
+function fmtPct(n){return n.toFixed(1)+'%';}
+function parseNum(s){return parseFloat((s||'').replace(/[$,%s"]/g,'').replace(/(([^)]+))/,'-$1'))||0;}
+function fmtLabel(s){var c=s.replace(/[$s"]/g,'').trim();var p=c.split('/');if(p.length<2)return c;var mo=parseInt(p[0])-1;var yr=p.length===3?parseInt(p[2]):2000+parseInt(p[1]);if(yr<100)yr+=2000;var d=new Date(yr,mo,parseInt(p[1]||1));return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function parseCSV(text){var lines=text.trim().split(/
+?
+/);var rows=[];for(var i=1;i<lines.length;i++){var line=lines[i];var cols=[];var cur='';var inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());if(cols[0]&&cols[0].match(/d/))rows.push(cols);}return rows;}
+function buildAgingBar(elId,vals,classes){var total=vals.reduce(function(a,b){return a+b;},0);var bar=document.getElementById(elId);bar.innerHTML='';vals.forEach(function(v,i){var pct=total>0?(v/total*100):0;var d=document.createElement('div');d.className=classes[i];d.style.width=pct.toFixed(1)+'%';if(pct>8)d.textContent=fmtPct(pct);bar.appendChild(d);});}
+function loadData(){
+fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){
+var rows=parseCSV(text);if(!rows.length){throw new Error('no data');}
+var labels=rows.map(function(r){return fmtLabel(r[0]);});
+var ar0=rows.map(function(r){return parseNum(r[1]);});
+var ar30=rows.map(function(r){return parseNum(r[2]);});
+var ar60=rows.map(function(r){return parseNum(r[3]);});
+var ar90=rows.map(function(r){return parseNum(r[4]);});
+var arT=rows.map(function(r){return parseNum(r[5]);});
+var ap0=rows.map(function(r){return parseNum(r[6]);});
+var ap30=rows.map(function(r){return parseNum(r[7]);});
+var ap60=rows.map(function(r){return parseNum(r[8]);});
+var ap90=rows.map(function(r){return parseNum(r[9]);});
+var apT=rows.map(function(r){return parseNum(r[10]);});
+var n=rows.length-1;var latestLabel=labels[n];
+document.getElementById('as-of').textContent='As of '+latestLabel;
+document.getElementById('kpi-ar-total').textContent=fmtM(arT[n]);
+var arPrev=n>0?arT[n-1]:arT[n];var arChg=arT[n]-arPrev;
+var arChgEl=document.getElementById('kpi-ar-total-sub');arChgEl.textContent=(arChg>=0?'+':'')+fmtM(arChg)+' vs prior week';arChgEl.className='ms '+(arChg<=0?'up':'dn');
+var arPastDue=ar30[n]+ar60[n]+ar90[n];document.getElementById('kpi-ar-pastdue').textContent=fmtM(arPastDue);
+document.getElementById('kpi-ar-pastdue-sub').textContent=arT[n]>0?fmtPct(arPastDue/arT[n]*100)+' of AR total':'';
+document.getElementById('kpi-ar0').textContent=fmtM(ar0[n]);document.getElementById('kpi-ar30').textContent=fmtM(ar30[n]);document.getElementById('kpi-ar60').textContent=fmtM(ar60[n]);document.getElementById('kpi-ar90').textContent=fmtM(ar90[n]);
+buildAgingBar('ar-aging-bar',[ar0[n],ar30[n],ar60[n],ar90[n]],['ar0','ar30','ar60','ar90']);
+document.getElementById('kpi-ap-total').textContent=fmtM(apT[n]);
+var apPrev=n>0?apT[n-1]:apT[n];var apChg=apT[n]-apPrev;
+var apChgEl=document.getElementById('kpi-ap-total-sub');apChgEl.textContent=(apChg>=0?'+':'')+fmtM(apChg)+' vs prior week';apChgEl.className='ms '+(apChg<=0?'up':'dn');
+var apPastDue=ap30[n]+ap60[n]+ap90[n];document.getElementById('kpi-ap-pastdue').textContent=fmtM(apPastDue);
+document.getElementById('kpi-ap-pastdue-sub').textContent=apT[n]>0?fmtPct(apPastDue/apT[n]*100)+' of AP total':'';
+document.getElementById('kpi-ap0').textContent=fmtM(ap0[n]);document.getElementById('kpi-ap30').textContent=fmtM(ap30[n]);document.getElementById('kpi-ap60').textContent=fmtM(ap60[n]);document.getElementById('kpi-ap90').textContent=fmtM(ap90[n]);
+buildAgingBar('ap-aging-bar',[ap0[n],ap30[n],ap60[n],ap90[n]],['ap0','ap30','ap60','ap90']);
+var scX={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},maxRotation:45},grid:{color:'rgba(255,255,255,0.05)'}};
+var scY={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:function(v){return fmtM(v);}},grid:{color:'rgba(255,255,255,0.05)'}};
+var leg={labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
+new Chart(document.getElementById('chart-ar-total'),{type:'line',data:{labels:labels,datasets:[{label:'AR Total',data:arT,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',pointBackgroundColor:'#e87722',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:scX,y:scY}}});
+new Chart(document.getElementById('chart-ar-aging'),{type:'bar',data:{labels:labels,datasets:[{label:'0-30 Days',data:ar0,backgroundColor:'#2ecc71',borderRadius:2},{label:'30-60 Days',data:ar30,backgroundColor:'#f39c12',borderRadius:2},{label:'60-90 Days',data:ar60,backgroundColor:'#e67e22',borderRadius:2},{label:'>90 Days',data:ar90,backgroundColor:'#e74c3c',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:Object.assign({stacked:true},scX),y:Object.assign({stacked:true},scY)}}});
+new Chart(document.getElementById('chart-ap-total'),{type:'line',data:{labels:labels,datasets:[{label:'AP Total',data:apT,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',pointBackgroundColor:'#3498db',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:scX,y:scY}}});
+new Chart(document.getElementById('chart-ap-aging'),{type:'bar',data:{labels:labels,datasets:[{label:'0-30 Days',data:ap0,backgroundColor:'#3498db',borderRadius:2},{label:'30-60 Days',data:ap30,backgroundColor:'#9b59b6',borderRadius:2},{label:'60-90 Days',data:ap60,backgroundColor:'#e67e22',borderRadius:2},{label:'>90 Days',data:ap90,backgroundColor:'#e74c3c',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:leg},scales:{x:Object.assign({stacked:true},scX),y:Object.assign({stacked:true},scY)}}});
+document.getElementById('ar-loading').style.display='none';
+document.getElementById('ar-content').style.display='block';
+}).catch(function(e){console.error('AR load error:',e);document.getElementById('ar-loading').textContent='Error loading data.';});}
+function checkMember(){if(window.$memberstackDom){window.$memberstackDom.getCurrentMember().then(function(result){var member=result.data;if(!member){window.location.href='index.html';return;}var role='employee';if(member.planConnections&&member.planConnections.length>0){var planId=(member.planConnections[0].planId||'').toLowerCase();if(planId.includes('admin'))role='admin';else if(planId.includes('exec'))role='exec';}document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';loadData();});}else{setTimeout(checkMember,100);}}
+checkMember();
+</script>
+</body>
+</html>
