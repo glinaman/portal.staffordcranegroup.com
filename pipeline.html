@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;--orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;--border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);}
+:root{--navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;--ohrange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;--border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);}
 html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
 body{display:flex;flex-direction:column;min-height:100vh;}
 .topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
@@ -113,7 +113,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   </div>
 </div>
 <script>
-var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vTDYmBxo9dDf-OivydBWhOYEOUkLRJHloxK_a8C1HT2s1rKhfxdkOpQ__sum5abSkrrJ19xIl4KcvFU/pub?gid=561957665&single=true&output=csv';
+var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vTDYmBxo9dDf-OivydBWhOYEOUkLRJHloxK_a8C1HT2s1rKhfxdkOpQ__sum5abSkrrJ19xII4KcvFU/pub?gid=561957665&single=true&output=csv';
 var monthlyChart=null,winrateChart=null,allData={};
 function parseCSVLine(line){var cols=[],cur='',inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());return cols;}
 function pn(s){return parseInt((s||'0').replace(/[^0-9-]/g,''))||0;}
