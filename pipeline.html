@@ -69,10 +69,8 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   <div id="pip-loading">Loading data&hellip;</div>
   <div id="pip-content" style="display:none;">
     <div class="section-label">Last 12 Months <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
-    <div class="g4">
+    <div class="g2">
       <div class="mc"><div class="ml">Total Quotes</div><div class="mv" id="kpi-quotes">&mdash;</div><div class="ms" id="kpi-quotes-sub"></div></div>
-      <div class="mc"><div class="ml">Total Wins</div><div class="mv" id="kpi-wins">&mdash;</div><div class="ms" id="kpi-wins-sub"></div></div>
-      <div class="mc"><div class="ml">Win Rate</div><div class="mv" id="kpi-rate">&mdash;</div><div class="ms" id="kpi-rate-sub"></div></div>
       <div class="mc"><div class="ml">Avg Wins / Month</div><div class="mv" id="kpi-avg">&mdash;</div><div class="ms" id="kpi-avg-sub"></div></div>
     </div>
     <div class="section-label" style="margin-top:8px;">Monthly Trend <span></span></div>
@@ -85,11 +83,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <div class="ct"><i class="ti ti-chart-bar"></i> Quotes vs. Wins by Month</div>
       <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
     </div>
-    <div class="card">
-      <div class="ct"><i class="ti ti-trending-up"></i> Win Rate % by Month</div>
-      <div class="chart-wrap"><canvas id="chart-winrate"></canvas></div>
-    </div>
-    <div class="section-label">Regional Breakdown <span></span></div>
+        <div class="section-label">Regional Breakdown <span></span></div>
     <div class="g2">
       <div class="card">
         <div class="ct"><i class="ti ti-building-skyscraper"></i> Tower Crane by Region</div>
