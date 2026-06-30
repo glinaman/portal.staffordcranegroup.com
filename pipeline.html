@@ -67,7 +67,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     <div class="as-of" id="as-of"></div>
   </div>
   <div id="pip-loading">Loading data&hellip;</div>
-  <div id="pip-content" style="display:none;"><div class="section-label" style="margin-bottom:10px;font-size:11px;">Most Recent Month: <span id="kpi-month-label" style="color:var(--orange);text-transform:none;font-family:Barlow,sans-serif;letter-spacing:0;"></span><span></span></div><div class="g3"><div class="mc"><div class="ml">Wins</div><div class="mv orange" id="kpi-wins-new">&mdash;</div><div class="ms" id="kpi-wins-sub"></div></div><div class="mc"><div class="ml">First Quotes (TC)</div><div class="mv" id="kpi-fq-new">&mdash;</div></div><div class="mc"><div class="ml">Total Projects Quoted</div><div class="mv" id="kpi-proj-new">&mdash;</div></div></div><div class="card" style="margin-top:12px;margin-bottom:12px;"><div class="ct"><i class="ti ti-chart-line"></i> Wins, First Quotes &amp; Total Quoted Over Time</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-combined"></canvas></div></div><div class="card" style="margin-top:12px;margin-bottom:4px;"><div class="ct"><i class="ti ti-trophy"></i> Monthly Wins (Bar)</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-wins-bar"></canvas></div></div>
+  <div id="pip-content" style="display:none;"><div class="section-label" style="margin-bottom:10px;font-size:11px;">Most Recent Month: <span id="kpi-month-label" style="color:var(--orange);text-transform:none;font-family:Barlow,sans-serif;letter-spacing:0;"></span><span></span></div><div class="g3"><div class="mc"><div class="ml">Quotes</div><div class="mv" id="kpi-quotes-new">&mdash;</div></div><div class="mc"><div class="ml">FQ</div><div class="mv" id="kpi-fq-new">&mdash;</div></div><div class="mc"><div class="ml">Proj</div><div class="mv" id="kpi-proj-new">&mdash;</div></div></div><div class="card" style="margin-top:12px;margin-bottom:12px;"><div class="ct"><i class="ti ti-chart-line"></i> Wins, First Quotes &amp; Total Quoted Over Time</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-combined"></canvas></div></div><div class="card" style="margin-top:12px;margin-bottom:4px;"><div class="ct"><i class="ti ti-trophy"></i> Monthly Wins (Bar)</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-wins-bar"></canvas></div></div>
     <div class="section-label">Last 12 Months <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
     <div class="g2">
       <div class="mc"><div class="ml">Total Quotes</div><div class="mv" id="kpi-quotes">&mdash;</div><div class="ms" id="kpi-quotes-sub"></div></div>
@@ -125,19 +125,19 @@ async function loadData(){
     const rows=raw.split('\n').map(l=>parseCSVLine(l));
     const hdr=rows[0];
     const months=[];
-    for(let i=1;i<hdr.length;i+=3){const h=hdr[i]||'';const m=h.replace(/ First Quotes$/,'').trim();if(m)months.push(m);}
+    for(let i=1;i<hdr.length-4;i+=4){const h=hdr[i]||'';const m=h.trim();if(m)months.push(m);}
     const n=months.length;
     function getMonthVals(row,colOffset){
       const vals=[];
-      for(let i=1+colOffset;i<row.length;i+=3)vals.push(pn(row[i])||0);
+      for(let i=1+colOffset;i<row.length-4;i+=4)vals.push(pn(row[i])||0);
       return vals;
     }
-    const tcRow=rows[8]||[];
-    const hRow=rows[17]||[];
-    const tcTotal=getMonthVals(tcRow,1);
-    const hTotal=getMonthVals(hRow,1);
-    const tcWins=getMonthVals(tcRow,2);
-    const hWins=getMonthVals(hRow,2);
+    const tcRow=rows[10]||[];
+    const hRow=rows[20]||[];
+    const tcTotal=getMonthVals(tcRow,2);
+    const hTotal=getMonthVals(hRow,2);
+    const tcWins=getMonthVals(tcRow,3);
+    const hWins=getMonthVals(hRow,3);
     const allQuotes=months.map((_,i)=>(tcTotal[i]||0)+(hTotal[i]||0));
     const allWins=months.map((_,i)=>(tcWins[i]||0)+(hWins[i]||0));
     const R=12;const start=Math.max(0,n-R);
@@ -157,8 +157,8 @@ async function loadData(){
       for(let ri=startRow;ri<=endRow;ri++){
         const row=rows[ri]||[];
         const nm=(row[0]||'').replace(/^(TC|Hoist) - /,'');
-        const q=getMonthVals(row,1).slice(start);
-        const w=getMonthVals(row,2).slice(start);
+        const q=getMonthVals(row,2).slice(start);
+        const w=getMonthVals(row,3).slice(start);
         result.push({name:nm,quotes:q,wins:w});
       }
       return result;
@@ -182,7 +182,7 @@ async function loadData(){
       });
     });
     
-var newScd={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.15)'}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}};var winsArr2=getMonthVals(tcRow,2).map(function(v,i){return v+(getMonthVals(hRow,2)[i]||0);});var fqArr2=getMonthVals(tcRow,0).map(function(v,i){return v+(getMonthVals(hRow,0)[i]||0);});var projArr2=getMonthVals(tcRow,1).map(function(v,i){return v+(getMonthVals(hRow,1)[i]||0);});var li=months.length-1;document.getElementById('kpi-month-label').textContent=months[li]||'';document.getElementById('kpi-wins-new').textContent=winsArr2[li]||0;var wdiff=(winsArr2[li]||0)-(winsArr2[li-1]||0);var wsub=document.getElementById('kpi-wins-sub');wsub.textContent=(wdiff>=0?'+':'')+wdiff+' vs prior month';wsub.className='ms '+(wdiff>=0?'up':'dn');document.getElementById('kpi-fq-new').textContent=fqArr2[li]||0;document.getElementById('kpi-proj-new').textContent=projArr2[li]||0;new Chart(document.getElementById('chart-trend-combined'),{type:'line',data:{labels:months,datasets:[{label:'Wins',data:winsArr2,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'FQ',data:fqArr2,borderColor:'#2ecc71',backgroundColor:'rgba(46,204,113,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Proj',data:projArr2,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2}]},options:{...JSON.parse(JSON.stringify(newScd)),plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:11},boxWidth:12,padding:16}}}}});new Chart(document.getElementById('chart-wins-bar'),{type:'bar',data:{labels:months,datasets:[{label:'Wins',data:winsArr2,backgroundColor:'rgba(232,119,34,0.7)',borderColor:'#e87722',borderWidth:1,borderRadius:3}]},options:{...JSON.parse(JSON.stringify(newScd)),barPercentage:1,categoryPercentage:1,scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}}});document.getElementById('pip-loading').style.display='none';
+var newScd={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.15)'}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}};var quotesArr2=getMonthVals(tcRow,2).map(function(v,i){return v+(getMonthVals(hRow,2)[i]||0);});var winsArr2=getMonthVals(tcRow,3).map(function(v,i){return v+(getMonthVals(hRow,3)[i]||0);});var fqArr2=getMonthVals(tcRow,0);var projArr2=getMonthVals(tcRow,1);var li=months.length-1;document.getElementById('kpi-month-label').textContent=months[li]||'';document.getElementById('kpi-quotes-new').textContent=quotesArr2[li]||0;document.getElementById('kpi-fq-new').textContent=fqArr2[li]||0;document.getElementById('kpi-proj-new').textContent=projArr2[li]||0;new Chart(document.getElementById('chart-trend-combined'),{type:'line',data:{labels:months,datasets:[{label:'FQ',data:fqArr2,borderColor:'#2ecc71',backgroundColor:'rgba(46,204,113,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Proj',data:projArr2,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Quotes',data:quotesArr2,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2}]},options:{...JSON.parse(JSON.stringify(newScd)),plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:11},boxWidth:12,padding:16}}}}});new Chart(document.getElementById('chart-wins-bar'),{type:'bar',data:{labels:months,datasets:[{label:'Wins',data:winsArr2,backgroundColor:'rgba(232,119,34,0.7)',borderColor:'#e87722',borderWidth:1,borderRadius:3}]},options:{...JSON.parse(JSON.stringify(newScd)),barPercentage:1,categoryPercentage:1,scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}}});document.getElementById('pip-loading').style.display='none';
     document.getElementById('pip-content').style.display='';
   }catch(e){
     document.getElementById('pip-loading').textContent='Error: '+e.message;
