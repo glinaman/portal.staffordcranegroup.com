@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1b2e">
+<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Utilization &mdash; SCG Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;--orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;--text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;--border:rgba(255,255,255,0.07);}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
+body{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--navy-mid);border-bottom:1px solid var(--border);padding:9px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:11px;letter-spacing:0.5px;transition:color 0.15s;}
+.back-link:hover{color:var(--orange);}
+.tb-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);flex:1;text-align:center;}
+.tb-role{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.content{flex:1;padding:22px 26px;max-width:1100px;width:100%;margin:0 auto;}
+.ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+.ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.as-of{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.mc{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.chart-wrap{height:200px;position:relative;}
+.chart-wrap-lg{height:260px;position:relative;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.kpi.highlight{border-color:rgba(232,119,34,0.4);}
+.kpi-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--text);}
+.kpi-sub{font-size:10px;color:var(--text-dim);margin-top:3px;}
+.kpi-pct{font-size:12px;color:var(--orange);margin-top:2px;font-weight:600;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.mb12{margin-bottom:12px;}
+.slabel{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin:18px 0 8px;}
+#util-loading{display:flex;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-link" href="finance.html"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
+  <div class="tb-title">Crane Utilization</div>
+  <div class="tb-role" id="tb-role"></div>
+</div>
+<div class="content">
+  <div class="ph">
+    <div>
+      <div class="ptitle">UTILIZATION</div>
+      <div class="psub">Cranes &amp; hoists in air &mdash; rolling 12 months + forward 12</div>
+    </div>
+    <div class="as-of" id="as-of"></div>
+  </div>
+  <div id="util-loading">LOADING DATA...</div>
+  <div id="util-content" style="display:none">
+    <div class="kpi-grid" id="kpi-row"></div>
+    <div class="slabel">TOWER CRANE &mdash; UNITS IN AIR</div>
+    <div class="mc mb12">
+      <div class="ct"><i class="ti ti-crane"></i> Tower Crane (Rolling 12 Past + Forward 12)</div>
+      <div class="chart-wrap-lg"><canvas id="chart-tc-trend"></canvas></div>
+    </div>
+    <div class="slabel">HOIST &mdash; UNITS IN AIR</div>
+    <div class="mc mb12">
+      <div class="ct"><i class="ti ti-building-factory"></i> Hoist (Rolling 12 Past + Forward 12)</div>
+      <div class="chart-wrap-lg"><canvas id="chart-hoist-trend"></canvas></div>
+    </div>
+    <div class="slabel">TOWER CRANE &mdash; BY MARKET</div>
+    <div id="tc-market-grid" class="g3"></div>
+    <div class="slabel">HOIST &mdash; BY MARKET</div>
+    <div id="hoist-market-grid" class="g3"></div>
+  </div>
+</div>
+<script>
+var SHEET_CSV='https://docs.google.com/spreadsheets/d/1-yXnvG8mvINY8PxY3exrBBPJfVb18XCYB_CRAFDQpb4/gviz/tq?tqx=out:csv&sheet=Summary';
+var TC_FLEET=76,HOIST_FLEET=68;
+function pf(s){return parseFloat((s||'').replace(/[^0-9.-]/g,''))||0;}
+function pct(n,f){return Math.round(n/f*100);}
+function parseCSVLine(line){
+  const cells=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){cells.push(cur);cur='';}
+    else{cur+=c;}
+  }
+  cells.push(cur);
+  return cells;
+}
+function parseCSV(txt){
+  const rows=[];let cur='',inQ=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(c==='"'){inQ=!inQ;}
+    else if((c==='\n'||c==='\r')&&!inQ){
+      if(cur)rows.push(parseCSVLine(cur));
+      cur='';
+    }else{cur+=c;}
+  }
+  if(cur)rows.push(parseCSVLine(cur));
+  return rows;
+}
+var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var ROLL_START=136,FUT_START=162;
+var gridColor='rgba(255,255,255,0.06)';
+var tickOpts={color:'#8ea3bc',font:{family:'Barlow',size:9}};
+var baseLine={borderWidth:2,pointRadius:3,pointHoverRadius:5,tension:0.35,fill:false};
+
+async function loadData(){
+  try{
+    var resp=await fetch(SHEET_CSV+'&t='+Date.now());
+    var text=await resp.text();
+    if(window._memberstack&&window._memberstack.getCurrentMember){
+      window._memberstack.getCurrentMember().then(function(r){
+        var m=r&&r.data;
+        if(m&&m.auth)document.getElementById('tb-role').textContent=m.auth.email||'';
+      });
+    }
+    var rows=parseCSV(text);
+    function getVals(rowIdx,start,count){
+      var r=rows[rowIdx]||[];
+      var out=[];
+      for(var i=0;i<count;i++)out.push(pf(r[start+i*2]));
+      return out;
+    }
+    var rollLabels=MO.slice(6).map(function(m){return m+"'25";}).concat(MO.slice(0,6).map(function(m){return m+"'26";}));
+    var futLabels=MO.slice(6).map(function(m){return m+"'26";}).concat(MO.slice(0,6).map(function(m){return m+"'27";}));
+    var allLabels=rollLabels.concat(futLabels);
+    var rollTC=getVals(13,ROLL_START,12);
+    var rollHoist=getVals(25,ROLL_START,12);
+    var futTC=getVals(13,FUT_START,12);
+    var futHoist=getVals(25,FUT_START,12);
+    var curTC=rollTC[11],curHoist=rollHoist[11];
+    var curComb=curTC+curHoist,combFleet=TC_FLEET+HOIST_FLEET;
+    var nxtTC=futTC[0],nxtHoist=futHoist[0];
+    document.getElementById('kpi-row').innerHTML=
+      '<div class="kpi highlight"><div class="kpi-label">TC In Air (Jun '26)</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
+      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun '26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>'+
+      '<div class="kpi"><div class="kpi-label">Combined (Jun '26)</div><div class="kpi-val">'+curComb+'</div><div class="kpi-pct">'+pct(curComb,combFleet)+'% utilization</div><div class="kpi-sub">of '+combFleet+' total fleet</div></div>'+
+      '<div class="kpi"><div class="kpi-label">Forward: Jul '26 Fcst</div><div class="kpi-val">'+(nxtTC+nxtHoist)+'</div><div class="kpi-pct">TC: '+nxtTC+' &nbsp;|&nbsp; Hoist: '+nxtHoist+'</div><div class="kpi-sub">'+pct(nxtTC+nxtHoist,combFleet)+'% projected</div></div>';
+
+    function trendOpts(){
+      return {responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:10},boxWidth:12,padding:12}},
+          tooltip:{mode:'index',intersect:false}},
+        scales:{
+          x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:gridColor}},
+          y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:gridColor},min:0}
+        }};
+    }
+    var nullArr12=new Array(12).fill(null);
+    new Chart(document.getElementById('chart-tc-trend'),{type:'line',data:{labels:allLabels,datasets:[
+      Object.assign({},baseLine,{label:'TC In Air (Actual)',data:rollTC.concat(nullArr12),borderColor:'#e87722',pointBackgroundColor:'#e87722'}),
+      Object.assign({},baseLine,{label:'TC In Air (Forecast)',data:new Array(11).fill(null).concat([rollTC[11]]).concat(futTC),borderColor:'rgba(232,119,34,0.6)',pointBackgroundColor:'rgba(232,119,34,0.3)',borderDash:[5,4],borderWidth:1.5})
+    ]},options:trendOpts()});
+    new Chart(document.getElementById('chart-hoist-trend'),{type:'line',data:{labels:allLabels,datasets:[
+      Object.assign({},baseLine,{label:'Hoists In Air (Actual)',data:rollHoist.concat(nullArr12),borderColor:'#3498db',pointBackgroundColor:'#3498db'}),
+      Object.assign({},baseLine,{label:'Hoists In Air (Forecast)',data:new Array(11).fill(null).concat([rollHoist[11]]).concat(futHoist),borderColor:'rgba(52,152,219,0.6)',pointBackgroundColor:'rgba(52,152,219,0.3)',borderDash:[5,4],borderWidth:1.5})
+    ]},options:trendOpts()});
+
+    function mkMarketChart(containerId,states,rowNums,colors){
+      var grid=document.getElementById(containerId);
+      states.forEach(function(state,si){
+        var roll=getVals(rowNums[si],ROLL_START,12);
+        var fut=getVals(rowNums[si],FUT_START,12);
+        var maxV=Math.max.apply(null,roll.concat(fut));
+        if(maxV===0)return;
+        var card=document.createElement('div');
+        card.className='mc';
+        card.innerHTML='<div class="ct"><i class="ti ti-map-pin"></i> '+state+'</div><div class="chart-wrap"><canvas id="mkt-'+containerId+'-'+state+'"></canvas></div>';
+        grid.appendChild(card);
+        var col=colors[si];
+        new Chart(document.getElementById('mkt-'+containerId+'-'+state),{type:'line',data:{labels:allLabels,datasets:[
+          Object.assign({},baseLine,{label:'Actual',data:roll.concat(nullArr12),borderColor:col,pointBackgroundColor:col,pointRadius:2}),
+          Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([roll[11]]).concat(fut),borderColor:col,pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[4,3],borderWidth:1.5,pointRadius:2})
+        ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+          scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:8},maxRotation:45},grid:{color:gridColor}},
+            y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0}}}});
+      });
+    }
+    mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[4,5,6,8,9,10],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
+    mkMarketChart('hoist-market-grid',['AZ','CA','CO','IA','TX'],[16,17,18,19,22],['#e87722','#2ecc71','#3498db','#9b59b6','#f1c40f']);
+
+    document.getElementById('as-of').textContent='As of Jun 2026';
+    document.getElementById('util-loading').style.display='none';
+    document.getElementById('util-content').style.display='';
+  }catch(e){
+    document.getElementById('util-loading').textContent='Error: '+e.message;
+  }
+}
+loadData();
+</script>
+</body>
+</html>
