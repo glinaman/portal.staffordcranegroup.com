@@ -129,10 +129,10 @@ async function loadData(){
     var rollLabels=MO.slice(6).map(function(m){return m+"'25";}).concat(MO.slice(0,6).map(function(m){return m+"'26";}));
     var futLabels=MO.slice(6).map(function(m){return m+"'26";}).concat(MO.slice(0,6).map(function(m){return m+"'27";}));
     var allLabels=rollLabels.concat(futLabels);
-    var rollTC=getVals(13,ROLL_START,12);
-    var rollHoist=getVals(25,ROLL_START,12);
-    var futTC=getVals(13,FUT_START,12);
-    var futHoist=getVals(25,FUT_START,12);
+    var rollTC=getVals(14,ROLL_START,12);
+    var rollHoist=getVals(27,ROLL_START,12);
+    var futTC=getVals(14,FUT_START,12);
+    var futHoist=getVals(27,FUT_START,12);
     var curTC=rollTC[11],curHoist=rollHoist[11];
     var curComb=curTC+curHoist,combFleet=TC_FLEET+HOIST_FLEET;
     var nxtTC=futTC[0],nxtHoist=futHoist[0];
@@ -181,8 +181,8 @@ async function loadData(){
             y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0}}}});
       });
     }
-    mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[4,5,6,8,9,10],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
-    mkMarketChart('hoist-market-grid',['AZ','CA','CO','IA','TX'],[16,17,18,19,22],['#e87722','#2ecc71','#3498db','#9b59b6','#f1c40f']);
+    mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[5,6,7,9,10,11],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
+    mkMarketChart('hoist-market-grid',['AZ','CA','CO','IA','TX'],[18,19,20,21,24],['#e87722','#2ecc71','#3498db','#9b59b6','#f1c40f']);
 
     document.getElementById('as-of').textContent='As of Jun 2026';
     document.getElementById('util-loading').style.display='none';
