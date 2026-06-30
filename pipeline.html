@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0d1b2e">
 <script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<title>Sales Pipeline â SCG Portal</title>
+<title>Sales Pipeline Ã¢ÂÂ SCG Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
@@ -63,7 +63,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 <div class="content">
   <div class="ph">
-    <div><div class="ptitle">Sales Pipeline</div><div class="psub">Quotes and wins by product type and region â rolling 12 months</div></div>
+    <div><div class="ptitle">Sales Pipeline</div><div class="psub">Quotes and wins by product type and region Ã¢ÂÂ rolling 12 months</div></div>
     <div class="as-of" id="as-of"></div>
   </div>
   <div id="pip-loading">Loading data&hellip;</div>
@@ -157,9 +157,9 @@ async function loadData(){
       for(let ri=startRow;ri<=endRow;ri++){
         const row=rows[ri]||[];
         const nm=(row[0]||'').replace(/^(TC|Hoist) - /,'');
-        const q=getMonthVals(row,1).slice(start).reduce((a,b)=>a+b,0);
-        const w=getMonthVals(row,2).slice(start).reduce((a,b)=>a+b,0);
-        result.push([nm,q,w]);
+        const q=getMonthVals(row,1).slice(start);
+        const w=getMonthVals(row,2).slice(start);
+        result.push({name:nm,quotes:q,wins:w});
       }
       return result;
     }
