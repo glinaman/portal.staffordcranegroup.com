@@ -137,10 +137,10 @@ async function loadData(){
     var curComb=curTC+curHoist,combFleet=TC_FLEET+HOIST_FLEET;
     var nxtTC=futTC[0],nxtHoist=futHoist[0];
     document.getElementById('kpi-row').innerHTML=
-      '<div class="kpi highlight"><div class="kpi-label">TC In Air (Jun '26)</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
-      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun '26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>'+
-      '<div class="kpi"><div class="kpi-label">Combined (Jun '26)</div><div class="kpi-val">'+curComb+'</div><div class="kpi-pct">'+pct(curComb,combFleet)+'% utilization</div><div class="kpi-sub">of '+combFleet+' total fleet</div></div>'+
-      '<div class="kpi"><div class="kpi-label">Forward: Jul '26 Fcst</div><div class="kpi-val">'+(nxtTC+nxtHoist)+'</div><div class="kpi-pct">TC: '+nxtTC+' &nbsp;|&nbsp; Hoist: '+nxtHoist+'</div><div class="kpi-sub">'+pct(nxtTC+nxtHoist,combFleet)+'% projected</div></div>';
+      '<div class="kpi highlight"><div class="kpi-label">TC In Air (Jun \'26)</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
+      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun \'26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>'+
+      '<div class="kpi"><div class="kpi-label">Combined (Jun \'26)</div><div class="kpi-val">'+curComb+'</div><div class="kpi-pct">'+pct(curComb,combFleet)+'% utilization</div><div class="kpi-sub">of '+combFleet+' total fleet</div></div>'+
+      '<div class="kpi"><div class="kpi-label">Forward: Jul \'26 Fcst</div><div class="kpi-val">'+(nxtTC+nxtHoist)+'</div><div class="kpi-pct">TC: '+nxtTC+' &nbsp;|&nbsp; Hoist: '+nxtHoist+'</div><div class="kpi-sub">'+pct(nxtTC+nxtHoist,combFleet)+'% projected</div></div>';
 
     function trendOpts(){
       return {responsive:true,maintainAspectRatio:false,
