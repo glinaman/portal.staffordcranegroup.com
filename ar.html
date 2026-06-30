@@ -140,9 +140,7 @@ function fmtM(n){var abs=Math.abs(n);if(abs>=1e6)return '$'+(n/1e6).toFixed(1)+'
 function fmtPct(n){return n.toFixed(1)+'%';}
 function parseNum(s){return parseFloat((s||'').replace(/[$,%s"]/g,'').replace(/(([^)]+))/,'-$1'))||0;}
 function fmtLabel(s){var c=s.replace(/[$s"]/g,'').trim();var p=c.split('/');if(p.length<2)return c;var mo=parseInt(p[0])-1;var yr=p.length===3?parseInt(p[2]):2000+parseInt(p[1]);if(yr<100)yr+=2000;var d=new Date(yr,mo,parseInt(p[1]||1));return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
-function parseCSV(text){var lines=text.trim().split(/
-?
-/);var rows=[];for(var i=1;i<lines.length;i++){var line=lines[i];var cols=[];var cur='';var inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());if(cols[0]&&cols[0].match(/d/))rows.push(cols);}return rows;}
+function parseCSV(text){var lines=text.trim().split('\n');var rows=[];for(var i=1;i<lines.length;i++){var line=lines[i];var cols=[];var cur='';var inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());if(cols[0]&&cols[0].match(/d/))rows.push(cols);}return rows;}
 function buildAgingBar(elId,vals,classes){var total=vals.reduce(function(a,b){return a+b;},0);var bar=document.getElementById(elId);bar.innerHTML='';vals.forEach(function(v,i){var pct=total>0?(v/total*100):0;var d=document.createElement('div');d.className=classes[i];d.style.width=pct.toFixed(1)+'%';if(pct>8)d.textContent=fmtPct(pct);bar.appendChild(d);});}
 function loadData(){
 fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){
