@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0d1b2e">
 <script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<title>Sales Pipeline — SCG Portal</title>
+<title>Sales Pipeline â SCG Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
@@ -63,7 +63,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 </div>
 <div class="content">
   <div class="ph">
-    <div><div class="ptitle">Sales Pipeline</div><div class="psub">Quotes and wins by product type and region — rolling 12 months</div></div>
+    <div><div class="ptitle">Sales Pipeline</div><div class="psub">Quotes and wins by product type and region â rolling 12 months</div></div>
     <div class="as-of" id="as-of"></div>
   </div>
   <div id="pip-loading">Loading data&hellip;</div>
@@ -117,6 +117,7 @@ function chartDef(){return{responsive:true,maintainAspectRatio:false,plugins:{le
 function buildMonthly(months,quotes,wins){if(monthlyChart)monthlyChart.destroy();var ctx=document.getElementById('chart-monthly').getContext('2d');monthlyChart=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Quotes',data:quotes,backgroundColor:'rgba(52,152,219,0.7)',borderRadius:3},{label:'Wins',data:wins,backgroundColor:'rgba(232,119,34,0.85)',borderRadius:3}]},options:chartDef()});}
 function buildDonut(id,labels,vals,colors){var ctx=document.getElementById(id).getContext('2d');new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8ea3bc',font:{family:"'Barlow',sans-serif",size:11},boxWidth:12,padding:12}}}}});}
 function buildTable(id,rows){var tb=document.getElementById(id);var html='<thead><tr><th>Region</th><th>Quotes</th><th>Wins</th><th>Win %</th></tr></thead><tbody>';rows.forEach(function(r,idx){var q=r.quotes.reduce(function(a,b){return a+b;},0),w=r.wins.reduce(function(a,b){return a+b;},0),pct=q>0?(w/q*100):0,isTot=idx===rows.length-1;html+='<tr><td>'+r.name.replace(/^(TC|Hoist) - /,'')+'</td><td>'+q+'</td><td>'+w+'</td><td><div>'+fmtPct(pct)+'</div>'+(isTot?'':'<div class="win-bar-wrap"><div class="win-bar" style="width:'+Math.round(pct)+'%"></div></div>')+'</td></tr>';});html+='</tbody>';tb.innerHTML=html;}
+var monthlyChart;
 async function loadData(){
   try{
     const res=await fetch(SHEET_CSV);
