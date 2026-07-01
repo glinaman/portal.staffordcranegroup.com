@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1b2e">
-<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <title>Events — SCG Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,12 +24,10 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .back-link{display:flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:11px;letter-spacing:0.5px;transition:color 0.15s;}
 .back-link:hover{color:var(--orange);}
 .tb-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);flex:1;text-align:center;}
-.tb-role{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
 .content{flex:1;padding:22px 26px;max-width:1100px;width:100%;margin:0 auto;}
-.ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;}
+.ph{margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;}
 .ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
 .psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
-.exec-badge{background:rgba(232,119,34,0.12);border:1px solid rgba(232,119,34,0.25);border-radius:4px;padding:2px 9px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--orange);}
 .section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
 .card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
@@ -41,23 +38,18 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .sl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
 .sv{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;margin-top:4px;color:var(--text);}
 .ss{font-size:10px;color:var(--text-muted);margin-top:2px;}
-.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-muted);}
-.locked i{font-size:40px;color:var(--text-dim);margin-bottom:14px;}
-.locked h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;color:var(--text-muted);}
-.locked p{font-size:11px;max-width:230px;}
-#ev-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+#ev-loading{display:flex;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 </style>
 </head>
 <body>
 <div class="topbar">
 <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Back to Finance</a>
 <div class="tb-title">Events</div>
-<div class="tb-role" id="tb-role"></div>
 </div>
 <div class="content">
 <div class="ph">
-<div><div class="ptitle">Events</div><div class="psub">Monthly crane &amp; hoist event counts by market</div></div>
-<div class="exec-badge">Executive Access</div>
+<div class="ptitle">Events</div>
+<div class="psub">Monthly crane &amp; hoist event counts by market</div>
 </div>
 <div id="ev-loading">Loading events…</div>
 <div id="ev-content" style="display:none;">
@@ -72,154 +64,73 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div id="breakdown-table" style="overflow-x:auto;"></div>
 </div>
 </div>
-<div id="ev-locked" class="locked" style="display:none;"><i class="ti ti-lock"></i><h3>Executive Access Only</h3><p>This section is restricted to the Executive team. Contact Jennifer Meadows to request access.</p></div>
 </div>
 <script>
 var PUB = '2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3';
-
-function csvFetch(gid, cb) {
-  var url = 'https://docs.google.com/spreadsheets/d/e/' + PUB + '/pub?single=true&output=csv&gid=' + gid;
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.onload = function(){ if(xhr.status===200) cb(null,xhr.responseText); else cb(new Error('HTTP '+xhr.status)); };
-  xhr.onerror = function(){ cb(new Error('Network error')); };
+function csvFetch(gid,cb){
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET','https://docs.google.com/spreadsheets/d/e/'+PUB+'/pub?single=true&output=csv&gid='+gid);
+  xhr.onload=function(){if(xhr.status===200)cb(null,xhr.responseText);else cb(new Error('HTTP '+xhr.status));};
+  xhr.onerror=function(){cb(new Error('Network error'));};
   xhr.send();
 }
-
-function parseCSV(text) {
-  var lines = text.trim().split('\n');
-  return lines.map(function(line) {
+function parseCSV(text){
+  return text.trim().split('\n').map(function(line){
     var cols=[],cur='',inQ=false;
-    for(var i=0;i<line.length;i++){
-      var c=line[i];
-      if(c==='"'){inQ=!inQ;}
-      else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
-      else{cur+=c;}
-    }
-    cols.push(cur.trim());
-    return cols;
+    for(var i=0;i<line.length;i++){var c=line[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=c;}}
+    cols.push(cur.trim());return cols;
   });
 }
-
-function toNum(v){ return parseFloat(String(v).replace(/[^0-9.-]/g,'')); }
-
-function loadEvents() {
-  csvFetch('1814824290', function(err, text) {
-    if(err){ console.error(err); return; }
-    var rows = parseCSV(text);
-    var months=[], tcAZ=[], tcCA=[], tcCO=[], tcOther=[], hAZ=[], hCA=[], hCO=[], hOther=[];
+function toNum(v){return parseFloat(String(v).replace(/[^0-9.-]/g,''));}
+function loadEvents(){
+  csvFetch('1814824290',function(err,text){
+    document.getElementById('ev-loading').style.display='none';
+    document.getElementById('ev-content').style.display='block';
+    if(err){console.error(err);return;}
+    var rows=parseCSV(text);
+    var months=[],tcAZ=[],tcCA=[],tcCO=[],tcOther=[],hAZ=[],hCA=[],hCO=[],hOther=[];
     var i=0;
     while(i<rows.length){
       var r=rows[i]||[];
       if(r[1]&&/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(r[1])&&(!r[2]||!r[2].trim())){
         months.push(r[1].trim());
-        var getVal=function(ri,col){ return isNaN(toNum((rows[ri]||[])[col]||'0'))?0:toNum((rows[ri]||[])[col]||'0'); };
-        tcAZ.push(getVal(i+2,6)); tcCA.push(getVal(i+3,6)); tcCO.push(getVal(i+4,6)); tcOther.push(getVal(i+5,6));
-        hAZ.push(getVal(i+6,6)); hCA.push(getVal(i+7,6)); hCO.push(getVal(i+8,6)); hOther.push(getVal(i+9,6));
+        var gv=function(ri,col){var v=toNum(((rows[ri]||[])[col]||'0'));return isNaN(v)?0:v;};
+        tcAZ.push(gv(i+2,6));tcCA.push(gv(i+3,6));tcCO.push(gv(i+4,6));tcOther.push(gv(i+5,6));
+        hAZ.push(gv(i+6,6));hCA.push(gv(i+7,6));hCO.push(gv(i+8,6));hOther.push(gv(i+9,6));
         i+=13;
-      } else { i++; }
+      }else{i++;}
     }
-    if(!months.length) return;
-    var n=Math.min(12,months.length);
-    var sl=function(a){return a.slice(-n);};
-    months=sl(months); tcAZ=sl(tcAZ); tcCA=sl(tcCA); tcCO=sl(tcCO); tcOther=sl(tcOther);
-    hAZ=sl(hAZ); hCA=sl(hCA); hCO=sl(hCO); hOther=sl(hOther);
-
-    // Stats - totals for most recent month
-    var last=months.length-1;
-    var latestTC=tcAZ[last]+tcCA[last]+tcCO[last]+tcOther[last];
-    var latestH=hAZ[last]+hCA[last]+hCO[last]+hOther[last];
-    var ttlTC=tcAZ.reduce(function(a,b){return a+b;},0)+tcCA.reduce(function(a,b){return a+b;},0)+tcCO.reduce(function(a,b){return a+b;},0)+tcOther.reduce(function(a,b){return a+b;},0);
-    var ttlH=hAZ.reduce(function(a,b){return a+b;},0)+hCA.reduce(function(a,b){return a+b;},0)+hCO.reduce(function(a,b){return a+b;},0)+hOther.reduce(function(a,b){return a+b;},0);
-    var statsEl=document.getElementById('ev-stats');
-    statsEl.innerHTML=
-      '<div class="stat"><div class="sl">TC Events ('+months[last]+')</div><div class="sv">'+latestTC+'</div><div class="ss">Tower Crane</div></div>'+
-      '<div class="stat"><div class="sl">Hoist Events ('+months[last]+')</div><div class="sv">'+latestH+'</div><div class="ss">Hoist</div></div>'+
-      '<div class="stat"><div class="sl">TC Events (12 Mo)</div><div class="sv">'+ttlTC+'</div><div class="ss">Tower Crane total</div></div>'+
-      '<div class="stat"><div class="sl">Hoist Events (12 Mo)</div><div class="sv">'+ttlH+'</div><div class="ss">Hoist total</div></div>';
-
-    // Chart
-    var canvas=document.getElementById('events-chart');
-    if(canvas._chart) canvas._chart.destroy();
-    canvas._chart=new Chart(canvas,{
-      type:'bar',
-      data:{
-        labels:months,
-        datasets:[
-          {label:'TC-AZ',data:tcAZ,backgroundColor:'#e87722',stack:'tc',borderRadius:2},
-          {label:'TC-CA',data:tcCA,backgroundColor:'#f0a050',stack:'tc',borderRadius:2},
-          {label:'TC-CO',data:tcCO,backgroundColor:'#f5c580',stack:'tc',borderRadius:2},
-          {label:'TC-Other',data:tcOther,backgroundColor:'#f8ddb0',stack:'tc',borderRadius:2},
-          {label:'Hoist-AZ',data:hAZ,backgroundColor:'#3498db',stack:'hoist',borderRadius:2},
-          {label:'Hoist-CA',data:hCA,backgroundColor:'#67b3e8',stack:'hoist',borderRadius:2},
-          {label:'Hoist-CO',data:hCO,backgroundColor:'#96ccf0',stack:'hoist',borderRadius:2},
-          {label:'Hoist-Other',data:hOther,backgroundColor:'#c2e3f8',stack:'hoist',borderRadius:2}
-        ]
-      },
-      options:{
-        responsive:true,
-        plugins:{legend:{labels:{color:'#f0f4f8',font:{size:10},boxWidth:12}}},
-        scales:{
-          x:{stacked:true,ticks:{color:'#8ea3bc',font:{size:10},maxRotation:45},grid:{color:'rgba(255,255,255,0.05)'}},
-          y:{stacked:true,ticks:{color:'#8ea3bc'},grid:{color:'rgba(255,255,255,0.07)'},beginAtZero:true}
-        }
-      }
-    });
-
-    // Breakdown table
-    var mkRow=function(label,az,ca,co,oth,tot,isHead,isTot){
-      var bg=isHead?'background:var(--navy-light);':isTot?'background:rgba(232,119,34,0.08);':'background:var(--navy);';
-      var fw=isHead||isTot?'font-weight:600;':'font-weight:400;';
-      var fc=isHead?'color:var(--text-muted)':isTot?'color:var(--orange)':'color:var(--text)';
-      return '<tr style="'+bg+fw+fc+'"><td>'+label+'</td><td>'+az+'</td><td>'+ca+'</td><td>'+co+'</td><td>'+oth+'</td><td>'+tot+'</td></tr>';
-    };
+    var n=Math.min(12,months.length),sl=function(a){return a.slice(-n);};
+    months=sl(months);tcAZ=sl(tcAZ);tcCA=sl(tcCA);tcCO=sl(tcCO);tcOther=sl(tcOther);
+    hAZ=sl(hAZ);hCA=sl(hCA);hCO=sl(hCO);hOther=sl(hOther);
     var sum=function(a){return a.reduce(function(s,v){return s+v;},0);};
-    var tbl='<table style="width:100%;border-collapse:collapse;font-size:11px;">'+
-      '<colgroup><col style="width:140px"><col><col><col><col><col></colgroup>'+
-      '<thead>'+mkRow('Category','AZ','CA','CO','Other','Total',true,false)+'</thead>'+
-      '<tbody>'+
-      mkRow('TC-AZ',sum(tcAZ),'-','-','-',sum(tcAZ),false,false)+
-      mkRow('TC-CA','-',sum(tcCA),'-','-',sum(tcCA),false,false)+
-      mkRow('TC-CO','-','-',sum(tcCO),'-',sum(tcCO),false,false)+
-      mkRow('TC-Other','-','-','-',sum(tcOther),sum(tcOther),false,false)+
-      mkRow('Tower Crane Total',sum(tcAZ),sum(tcCA),sum(tcCO),sum(tcOther),ttlTC,false,true)+
-      mkRow('Hoist-AZ',sum(hAZ),'-','-','-',sum(hAZ),false,false)+
-      mkRow('Hoist-CA','-',sum(hCA),'-','-',sum(hCA),false,false)+
-      mkRow('Hoist-CO','-','-',sum(hCO),'-',sum(hCO),false,false)+
-      mkRow('Hoist-Other','-','-','-',sum(hOther),sum(hOther),false,false)+
-      mkRow('Hoist Total',sum(hAZ),sum(hCA),sum(hCO),sum(hOther),ttlH,false,true)+
-      '</tbody></table>';
-    document.getElementById('breakdown-table').innerHTML=tbl;
+    if(months.length){
+      var last=months.length-1;
+      var ltc=tcAZ[last]+tcCA[last]+tcCO[last]+tcOther[last];
+      var lh=hAZ[last]+hCA[last]+hCO[last]+hOther[last];
+      document.getElementById('ev-stats').innerHTML=
+        '<div class="stat"><div class="sl">TC Events ('+months[last]+')</div><div class="sv">'+ltc+'</div><div class="ss">Tower Crane</div></div>'+
+        '<div class="stat"><div class="sl">Hoist Events ('+months[last]+')</div><div class="sv">'+lh+'</div><div class="ss">Hoist</div></div>'+
+        '<div class="stat"><div class="sl">TC Events (12 Mo)</div><div class="sv">'+sum(tcAZ.concat(tcCA,tcCO,tcOther))+'</div><div class="ss">Tower Crane total</div></div>'+
+        '<div class="stat"><div class="sl">Hoist Events (12 Mo)</div><div class="sv">'+sum(hAZ.concat(hCA,hCO,hOther))+'</div><div class="ss">Hoist total</div></div>';
+      var canvas=document.getElementById('events-chart');
+      if(canvas._chart)canvas._chart.destroy();
+      canvas._chart=new Chart(canvas,{type:'bar',data:{labels:months,datasets:[
+        {label:'TC-AZ',data:tcAZ,backgroundColor:'#e87722',stack:'tc',borderRadius:2},
+        {label:'TC-CA',data:tcCA,backgroundColor:'#f0a050',stack:'tc',borderRadius:2},
+        {label:'TC-CO',data:tcCO,backgroundColor:'#f5c580',stack:'tc',borderRadius:2},
+        {label:'TC-Other',data:tcOther,backgroundColor:'#f8ddb0',stack:'tc',borderRadius:2},
+        {label:'Hoist-AZ',data:hAZ,backgroundColor:'#3498db',stack:'hoist',borderRadius:2},
+        {label:'Hoist-CA',data:hCA,backgroundColor:'#67b3e8',stack:'hoist',borderRadius:2},
+        {label:'Hoist-CO',data:hCO,backgroundColor:'#96ccf0',stack:'hoist',borderRadius:2},
+        {label:'Hoist-Other',data:hOther,backgroundColor:'#c2e3f8',stack:'hoist',borderRadius:2}
+      ]},options:{responsive:true,plugins:{legend:{labels:{color:'#f0f4f8',font:{size:10},boxWidth:12}}},scales:{x:{stacked:true,ticks:{color:'#8ea3bc',font:{size:10},maxRotation:45},grid:{color:'rgba(255,255,255,0.05)'}},y:{stacked:true,ticks:{color:'#8ea3bc'},grid:{color:'rgba(255,255,255,0.07)'},beginAtZero:true}}}});
+      var mkR=function(l,az,ca,co,ot,tot,h,t){var bg=h?'background:var(--navy-light);':t?'background:rgba(232,119,34,0.08);':'background:var(--navy);';var fw=h||t?'font-weight:600;':'';var fc=t?'color:var(--orange)':'color:var(--text)';return '<tr style="'+bg+fw+fc+'"><td style="padding:6px 8px;">'+l+'</td><td style="padding:6px 8px;text-align:right;">'+az+'</td><td style="padding:6px 8px;text-align:right;">'+ca+'</td><td style="padding:6px 8px;text-align:right;">'+co+'</td><td style="padding:6px 8px;text-align:right;">'+ot+'</td><td style="padding:6px 8px;text-align:right;">'+tot+'</td></tr>';};
+      document.getElementById('breakdown-table').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead>'+mkR('Category','AZ','CA','CO','Other','Total',true,false)+'</thead><tbody>'+mkR('TC-AZ',sum(tcAZ),'-','-','-',sum(tcAZ),false,false)+mkR('TC-CA','-',sum(tcCA),'-','-',sum(tcCA),false,false)+mkR('TC-CO','-','-',sum(tcCO),'-',sum(tcCO),false,false)+mkR('TC-Other','-','-','-',sum(tcOther),sum(tcOther),false,false)+mkR('Tower Crane Total',sum(tcAZ),sum(tcCA),sum(tcCO),sum(tcOther),sum(tcAZ)+sum(tcCA)+sum(tcCO)+sum(tcOther),false,true)+mkR('Hoist-AZ',sum(hAZ),'-','-','-',sum(hAZ),false,false)+mkR('Hoist-CA','-',sum(hCA),'-','-',sum(hCA),false,false)+mkR('Hoist-CO','-','-',sum(hCO),'-',sum(hCO),false,false)+mkR('Hoist-Other','-','-','-',sum(hOther),sum(hOther),false,false)+mkR('Hoist Total',sum(hAZ),sum(hCA),sum(hCO),sum(hOther),sum(hAZ)+sum(hCA)+sum(hCO)+sum(hOther),false,true)+'</tbody></table>';
+    }
   });
 }
-
-function showEvents(role){
-  document.getElementById('ev-loading').style.display='none';
-  document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';
-  if(role==='admin'||role==='exec'){
-    document.getElementById('ev-content').style.display='block';
-    loadEvents();
-  } else {
-    document.getElementById('ev-locked').style.display='flex';
-  }
-}
-
-function checkMember(){
-  if(window.$memberstackDom){
-    window.$memberstackDom.getCurrentMember().then(function(result){
-      var member=result.data;
-      if(!member){ window.location.href='index.html'; return; }
-      var role='employee';
-      if(member.planConnections&&member.planConnections.length>0){
-        var planId=(member.planConnections[0].planId||'').toLowerCase();
-        if(planId.includes('admin')) role='admin';
-        else if(planId.includes('exec')) role='exec';
-      }
-      showEvents(role);
-    });
-  } else { setTimeout(checkMember,100); }
-}
-checkMember();
+loadEvents();
 </script>
 </body>
 </html>
