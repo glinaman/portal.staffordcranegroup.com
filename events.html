@@ -1,4 +1,4 @@
-h<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -12,11 +12,11 @@ h<!DOCTYPE html>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
---navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;h
---orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
---green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;
---text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;
---border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);
+  --navy:#0d1b2e;--navy-mid:#162236;--navy-light:#1e3047;--navy-card:#192840;
+  --orange:#e87722;--orange-dark:#c5621a;--orange-glow:rgba(232,119,34,0.12);
+  --green:#2ecc71;--red:#e74c3c;--blue:#3498db;--purple:#9b59b6;
+  --text:#f0f4f8;--text-muted:#8ea3bc;--text-dim:#4d6580;
+  --border:rgba(255,255,255,0.07);--border-o:rgba(232,119,34,0.35);
 }
 html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--navy);color:var(--text);font-size:13px;line-height:1.5;}
 body{display:flex;flex-direction:column;min-height:100vh;}
@@ -29,108 +29,229 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ptitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
 .psub{font-size:11px;color:var(--text-muted);margin-top:2px;}
 .section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.section-label i{color:var(--orange);font-size:15px;}
 .card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
-.ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
-.ct i{color:var(--orange);font-size:14px;}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
-.stat{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:14px;}
-.sl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
-.sv{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;margin-top:4px;color:var(--text);}
-.ss{font-size:10px;color:var(--text-muted);margin-top:2px;}
-#ev-loading{display:flex;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+.chart-wrap{position:relative;height:320px;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.stat{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--orange);}
+.stat-label{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;margin-top:2px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--navy-light);color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.tbl tr:hover td{background:rgba(255,255,255,0.03);}
+.tbl tr.total-row td{font-weight:700;color:var(--orange);border-top:1px solid var(--border-o);}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;}
+.badge-tc{background:rgba(52,152,219,0.15);color:#3498db;}
+.badge-hoist{background:rgba(155,89,182,0.15);color:#9b59b6;}
+.lookahead-banner{background:rgba(232,119,34,0.08);border:1px solid var(--border-o);border-radius:8px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.lookahead-banner i{color:var(--orange);font-size:20px;}
+.lookahead-banner .lh-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange);}
+.lookahead-banner .lh-sub{font-size:11px;color:var(--text-muted);}
+#loading{text-align:center;padding:60px;color:var(--text-muted);font-size:13px;}
 </style>
 </head>
 <body>
 <div class="topbar">
-<a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Back to Finance</a>
-<div class="tb-title">Events</div>
+  <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Back to Finance</a>
+  <span class="tb-title">EVENTS</span>
 </div>
 <div class="content">
-<div class="ph">
-<div class="ptitle">Events</div>
-<div class="psub">Monthly crane &amp; hoist event counts by market</div>
+  <div class="ph">
+    <div class="ptitle">Events</div>
+    <div class="psub">Monthly crane &amp; hoist event counts by market</div>
+  </div>
+
+  <div id="loading"><i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;"></i>Loading events data...</div>
+
+  <div id="main-content" style="display:none;">
+    <!-- Stats -->
+    <div class="stat-row" id="stat-row"></div>
+
+    <!-- 30 Day Lookahead -->
+    <div class="lookahead-banner" id="lookahead-banner" style="display:none;">
+      <i class="ti ti-calendar-due"></i>
+      <div>
+        <div class="lh-title">30-Day Lookahead</div>
+        <div class="lh-sub" id="lookahead-sub"></div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div class="stat-val" id="lookahead-total" style="font-size:22px;"></div>
+        <div class="stat-label">PROJECTED EVENTS</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div style="margin-bottom:14px;">
+      <div class="section-label"><i class="ti ti-chart-bar"></i> Monthly Events — Last 12 Months</div>
+      <div class="card">
+        <div class="chart-wrap"><canvas id="eventsChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Breakdown Table -->
+    <div>
+      <div class="section-label"><i class="ti ti-table"></i> Monthly Breakdown by Equipment &amp; Market</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="tbl" id="breakdown-tbl">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Equipment / Market</th>
+              <th>Erection</th>
+              <th>Climb</th>
+              <th>Jump</th>
+              <th>Dismantle</th>
+              <th>Anchors</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
-<div id="ev-loading">Loading events…</div>
-<div id="ev-content" style="display:none;">
-<div class="g4" id="ev-stats"></div>
-<div class="section-label">Monthly Events — Last 12 Months</div>
-<div class="card">
-<div class="ct"><i class="ti ti-chart-bar"></i> Tower Crane &amp; Hoist Events by Month</div>
-<canvas id="events-chart" style="width:100%;max-height:340px;"></canvas>
-</div>
-<div class="card">
-<div class="ct"><i class="ti ti-table"></i> Events by Market &amp; Type</div>
-<div id="breakdown-table" style="overflow-x:auto;"></div>
-</div>
-</div>
-</div>
+
 <script>
-var PUB = '2PACX-1vRt4rPD6G4Sffo_rq8EKKPmT6Ma9MS2u3jNS91P3AaUx0jtMPDugnmliM94EMvzIqZBgacwgmjPUswm';
-function csvFetch(gid,cb){
-  var xhr=new XMLHttpRequest();
-  xhr.open('GET','https://docs.google.com/spreadsheets/d/e/'+PUB+'/pub?single=true&output=csv&gid='+gid);
-  xhr.onload=function(){if(xhr.status===200)cb(null,xhr.responseText);else cb(new Error('HTTP '+xhr.status));};
-  xhr.onerror=function(){cb(new Error('Network error'));};
-  xhr.send();
-}
+var PUB='2PACX-1vRt4rPD6G4Sffo_rq8EKKPmT6Ma9MS2u3jNS91P3AaUx0jtMPDugnmliM94EMvzIqZBgacwgmjPUswm';
+var GID='1814824290';
+var URL='https://docs.google.com/spreadsheets/d/e/'+PUB+'/pub?single=true&output=csv&gid='+GID;
+
 function parseCSV(text){
-  return text.trim().split('\n').map(function(line){
-    var cols=[],cur='',inQ=false;
-    for(var i=0;i<line.length;i++){var c=line[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=c;}}
-    cols.push(cur.trim());return cols;
-  });
-}
-function toNum(v){return parseFloat(String(v).replace(/[^0-9.-]/g,''));}
-function loadEvents(){
-  csvFetch('1814824290',function(err,text){
-    document.getElementById('ev-loading').style.display='none';
-    document.getElementById('ev-content').style.display='block';
-    if(err){console.error(err);return;}
-    var rows=parseCSV(text);
-    var months=[],tcAZ=[],tcCA=[],tcCO=[],tcOther=[],hAZ=[],hCA=[],hCO=[],hOther=[];
-    var i=0;
-    while(i<rows.length){
-      var r=rows[i]||[];
-      if(r[1]&&/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(r[1])&&(!r[2]||!r[2].trim())){
-        months.push(r[1].trim());
-        var gv=function(ri,col){var v=toNum(((rows[ri]||[])[col]||'0'));return isNaN(v)?0:v;};
-        tcAZ.push(gv(i+2,6));tcCA.push(gv(i+3,6));tcCO.push(gv(i+4,6));tcOther.push(gv(i+5,6));
-        hAZ.push(gv(i+6,6));hCA.push(gv(i+7,6));hCO.push(gv(i+8,6));hOther.push(gv(i+9,6));
-        i+=13;
-      }else{i++;}
+  // Split into lines, trim whitespace
+  var lines=text.split('\n').map(function(l){return l.trim();});
+  var months=[];
+  var lookahead=null;
+  var i=0;
+  while(i<lines.length){
+    var line=lines[i];
+    // Skip title row and blank rows
+    if(!line||line.startsWith('ROLLING')){i++;continue;}
+    // Check if this is a "30 DAY LOOKAHEAD" header
+    if(line.startsWith('30 DAY LOOKAHEAD')){
+      // Next is header row, then 8 data rows + total
+      i++; // skip header row
+      i++;
+      var rows=[];
+      while(i<lines.length&&lines[i]&&!lines[i].startsWith(',,,,,')){
+        var cells=lines[i].split(',');
+        if(cells[0]&&cells[0]!=='Total'){
+          rows.push({name:cells[0],vals:[+cells[1]||0,+cells[2]||0,+cells[3]||0,+cells[4]||0,+cells[5]||0,+cells[6]||0]});
+        } else if(cells[0]==='Total'){
+          var tot={name:'Total',vals:[+cells[1]||0,+cells[2]||0,+cells[3]||0,+cells[4]||0,+cells[5]||0,+cells[6]||0]};
+          lookahead={rows:rows,total:tot};
+        }
+        i++;
+      }
+      continue;
     }
-    var n=Math.min(12,months.length),sl=function(a){return a.slice(-n);};
-    months=sl(months);tcAZ=sl(tcAZ);tcCA=sl(tcCA);tcCO=sl(tcCO);tcOther=sl(tcOther);
-    hAZ=sl(hAZ);hCA=sl(hCA);hCO=sl(hCO);hOther=sl(hOther);
-    var sum=function(a){return a.reduce(function(s,v){return s+v;},0);};
-    if(months.length){
-      var last=months.length-1;
-      var ltc=tcAZ[last]+tcCA[last]+tcCO[last]+tcOther[last];
-      var lh=hAZ[last]+hCA[last]+hCO[last]+hOther[last];
-      document.getElementById('ev-stats').innerHTML=
-        '<div class="stat"><div class="sl">TC Events ('+months[last]+')</div><div class="sv">'+ltc+'</div><div class="ss">Tower Crane</div></div>'+
-        '<div class="stat"><div class="sl">Hoist Events ('+months[last]+')</div><div class="sv">'+lh+'</div><div class="ss">Hoist</div></div>'+
-        '<div class="stat"><div class="sl">TC Events (12 Mo)</div><div class="sv">'+sum(tcAZ.concat(tcCA,tcCO,tcOther))+'</div><div class="ss">Tower Crane total</div></div>'+
-        '<div class="stat"><div class="sl">Hoist Events (12 Mo)</div><div class="sv">'+sum(hAZ.concat(hCA,hCO,hOther))+'</div><div class="ss">Hoist total</div></div>';
-      var canvas=document.getElementById('events-chart');
-      if(canvas._chart)canvas._chart.destroy();
-      canvas._chart=new Chart(canvas,{type:'bar',data:{labels:months,datasets:[
-        {label:'TC-AZ',data:tcAZ,backgroundColor:'#e87722',stack:'tc',borderRadius:2},
-        {label:'TC-CA',data:tcCA,backgroundColor:'#f0a050',stack:'tc',borderRadius:2},
-        {label:'TC-CO',data:tcCO,backgroundColor:'#f5c580',stack:'tc',borderRadius:2},
-        {label:'TC-Other',data:tcOther,backgroundColor:'#f8ddb0',stack:'tc',borderRadius:2},
-        {label:'Hoist-AZ',data:hAZ,backgroundColor:'#3498db',stack:'hoist',borderRadius:2},
-        {label:'Hoist-CA',data:hCA,backgroundColor:'#67b3e8',stack:'hoist',borderRadius:2},
-        {label:'Hoist-CO',data:hCO,backgroundColor:'#96ccf0',stack:'hoist',borderRadius:2},
-        {label:'Hoist-Other',data:hOther,backgroundColor:'#c2e3f8',stack:'hoist',borderRadius:2}
-      ]},options:{responsive:true,plugins:{legend:{labels:{color:'#f0f4f8',font:{size:10},boxWidth:12}}},scales:{x:{stacked:true,ticks:{color:'#8ea3bc',font:{size:10},maxRotation:45},grid:{color:'rgba(255,255,255,0.05)'}},y:{stacked:true,ticks:{color:'#8ea3bc'},grid:{color:'rgba(255,255,255,0.07)'},beginAtZero:true}}}});
-      var mkR=function(l,az,ca,co,ot,tot,h,t){var bg=h?'background:var(--navy-light);':t?'background:rgba(232,119,34,0.08);':'background:var(--navy);';var fw=h||t?'font-weight:600;':'';var fc=t?'color:var(--orange)':'color:var(--text)';return '<tr style="'+bg+fw+fc+'"><td style="padding:6px 8px;">'+l+'</td><td style="padding:6px 8px;text-align:right;">'+az+'</td><td style="padding:6px 8px;text-align:right;">'+ca+'</td><td style="padding:6px 8px;text-align:right;">'+co+'</td><td style="padding:6px 8px;text-align:right;">'+ot+'</td><td style="padding:6px 8px;text-align:right;">'+tot+'</td></tr>';};
-      document.getElementById('breakdown-table').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead>'+mkR('Category','AZ','CA','CO','Other','Total',true,false)+'</thead><tbody>'+mkR('TC-AZ',sum(tcAZ),'-','-','-',sum(tcAZ),false,false)+mkR('TC-CA','-',sum(tcCA),'-','-',sum(tcCA),false,false)+mkR('TC-CO','-','-',sum(tcCO),'-',sum(tcCO),false,false)+mkR('TC-Other','-','-','-',sum(tcOther),sum(tcOther),false,false)+mkR('Tower Crane Total',sum(tcAZ),sum(tcCA),sum(tcCO),sum(tcOther),sum(tcAZ)+sum(tcCA)+sum(tcCO)+sum(tcOther),false,true)+mkR('Hoist-AZ',sum(hAZ),'-','-','-',sum(hAZ),false,false)+mkR('Hoist-CA','-',sum(hCA),'-','-',sum(hCA),false,false)+mkR('Hoist-CO','-','-',sum(hCO),'-',sum(hCO),false,false)+mkR('Hoist-Other','-','-','-',sum(hOther),sum(hOther),false,false)+mkR('Hoist Total',sum(hAZ),sum(hCA),sum(hCO),sum(hOther),sum(hAZ)+sum(hCA)+sum(hCO)+sum(hOther),false,true)+'</tbody></table>';
+    // Check if this looks like a month name (e.g. "Jun 2025")
+    var monthMatch=line.match(/^([A-Za-z]+ \d{4})/);
+    if(monthMatch){
+      var monthName=monthMatch[1];
+      i++; // skip header row
+      i++;
+      var rows=[];
+      var total=null;
+      while(i<lines.length){
+        var r=lines[i];
+        if(!r||r.startsWith(',,,,,,')){i++;break;}
+        var cells=r.split(',');
+        if(cells[0]==='Total'){
+          total={name:'Total',vals:[+cells[1]||0,+cells[2]||0,+cells[3]||0,+cells[4]||0,+cells[5]||0,+cells[6]||0]};
+        } else if(cells[0]){
+          rows.push({name:cells[0],vals:[+cells[1]||0,+cells[2]||0,+cells[3]||0,+cells[4]||0,+cells[5]||0,+cells[6]||0]});
+        }
+        i++;
+      }
+      months.push({name:monthName,rows:rows,total:total});
+      continue;
+    }
+    i++;
+  }
+  return{months:months,lookahead:lookahead};
+}
+
+fetch(URL).then(function(r){return r.text();}).then(function(csv){
+  var data=parseCSV(csv);
+  var months=data.months;
+  var lookahead=data.lookahead;
+
+  // --- Stats ---
+  var totalAll=0,totalTC=0,totalHoist=0;
+  months.forEach(function(m){
+    if(m.total){
+      totalAll+=m.total.vals[5];
+      m.rows.forEach(function(r){
+        if(r.name.startsWith('TC'))totalTC+=r.vals[5];
+        if(r.name.startsWith('Hoist'))totalHoist+=r.vals[5];
+      });
     }
   });
-}
-loadEvents();
+  var latestTotal=months.length>0&&months[months.length-1].total?months[months.length-1].total.vals[5]:0;
+  var statRow=document.getElementById('stat-row');
+  statRow.innerHTML=
+    '<div class="stat"><div class="stat-val">'+totalAll+'</div><div class="stat-label">TOTAL EVENTS (12 MO)</div></div>'+
+    '<div class="stat"><div class="stat-val">'+totalTC+'</div><div class="stat-label">TOWER CRANE EVENTS</div></div>'+
+    '<div class="stat"><div class="stat-val">'+totalHoist+'</div><div class="stat-label">HOIST EVENTS</div></div>'+
+    '<div class="stat"><div class="stat-val">'+latestTotal+'</div><div class="stat-label">LATEST MONTH TOTAL</div></div>';
+
+  // --- Lookahead banner ---
+  if(lookahead&&lookahead.total){
+    document.getElementById('lookahead-banner').style.display='flex';
+    document.getElementById('lookahead-total').textContent=lookahead.total.vals[5];
+    document.getElementById('lookahead-sub').textContent='Upcoming installations, climbs, dismantles & more';
+  }
+
+  // --- Chart ---
+  var labels=months.map(function(m){return m.name;});
+  var tcData=months.map(function(m){
+    var t=0;m.rows.forEach(function(r){if(r.name.startsWith('TC'))t+=r.vals[5];});return t;
+  });
+  var hoistData=months.map(function(m){
+    var t=0;m.rows.forEach(function(r){if(r.name.startsWith('Hoist'))t+=r.vals[5];});return t;
+  });
+  var ctx=document.getElementById('eventsChart').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'Tower Crane',data:tcData,backgroundColor:'rgba(52,152,219,0.8)',borderRadius:3},
+        {label:'Hoist',data:hoistData,backgroundColor:'rgba(155,89,182,0.8)',borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8ea3bc',font:{family:'Barlow',size:12}}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{stacked:true,ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}
+      }
+    }
+  });
+
+  // --- Breakdown table ---
+  var tbody=document.getElementById('breakdown-body');
+  var html='';
+  months.forEach(function(m){
+    m.rows.forEach(function(r,idx){
+      var badge=r.name.startsWith('TC')?'<span class="badge badge-tc">TC</span>':'<span class="badge badge-hoist">HOIST</span>';
+      var shortName=r.name.replace('TC - ','').replace('Hoist - ','');
+      html+='<tr>'+(idx===0?'<td rowspan="'+(m.rows.length+(m.total?1:0))+'">'+m.name+'</td>':'')+'<td>'+badge+' '+shortName+'</td><td>'+r.vals[0]+'</td><td>'+r.vals[1]+'</td><td>'+r.vals[2]+'</td><td>'+r.vals[3]+'</td><td>'+r.vals[4]+'</td><td>'+r.vals[5]+'</td></tr>';
+    });
+    if(m.total){
+      html+='<tr class="total-row"><td><strong>Total</strong></td><td>'+m.total.vals[0]+'</td><td>'+m.total.vals[1]+'</td><td>'+m.total.vals[2]+'</td><td>'+m.total.vals[3]+'</td><td>'+m.total.vals[4]+'</td><td>'+m.total.vals[5]+'</td></tr>';
+    }
+  });
+  tbody.innerHTML=html;
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main-content').style.display='block';
+}).catch(function(e){
+  document.getElementById('loading').textContent='Error loading data: '+e.message;
+});
 </script>
 </body>
 </html>
