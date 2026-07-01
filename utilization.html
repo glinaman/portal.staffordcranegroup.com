@@ -68,6 +68,11 @@ body{display:flex;flex-direction:column;min-height:100vh;}
       <div class="ct"><i class="ti ti-building-factory"></i> Hoist (Rolling 12 Past + Forward 12)</div>
       <div class="chart-wrap-lg"><canvas id="chart-hoist-trend"></canvas></div>
     </div>
+    <div class="slabel">COMBINED (TC + HOIST) &mdash; UNITS IN AIR</div>
+    <div class="mc mb12">
+      <div class="ct"><i class="ti ti-chart-line"></i> Combined TC + Hoist (Rolling 12 Past + Forward 12)</div>
+      <div class="chart-wrap-lg"><canvas id="chart-combined-trend"></canvas></div>
+    </div>
     <div class="slabel">TOWER CRANE &mdash; BY MARKET</div>
     <div id="tc-market-grid" class="g3"></div>
     <div class="slabel">HOIST &mdash; BY MARKET</div>
@@ -147,7 +152,7 @@ async function loadData(){
         plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:10},boxWidth:12,padding:12}},
           tooltip:{mode:'index',intersect:false}},
         scales:{
-          x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:gridColor}},
+          x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
           y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:gridColor},min:0}
         }};
     }
@@ -177,11 +182,20 @@ async function loadData(){
           Object.assign({},baseLine,{label:'Actual',data:roll.concat(nullArr12),borderColor:col,pointBackgroundColor:col,pointRadius:2}),
           Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([roll[11]]).concat(fut),borderColor:col,pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[4,3],borderWidth:1.5,pointRadius:2})
         ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
-          scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:8},maxRotation:45},grid:{color:gridColor}},
+          scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
             y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0}}}});
       });
     }
-    mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[4,5,6,8,9,10],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
+    // Combined TC + Hoist trend chart
+    var rollComb=rollTC.map(function(v,i){return v+(rollHoist[i]||0);});
+    var futComb=futTC.map(function(v,i){return v+(futHoist[i]||0);});
+    var nullArr12b=new Array(12).fill(null);
+    new Chart(document.getElementById('chart-combined-trend'),{type:'line',data:{labels:allLabels,datasets:[
+      Object.assign({},baseLine,{label:'Combined In Air (Actual)',data:rollComb.concat(nullArr12b),borderColor:'#2ecc71',pointBackgroundColor:'#2ecc71',pointRadius:2}),
+      Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([rollComb[11]]).concat(futComb),borderColor:'#2ecc71',pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[5,4],borderWidth:1.5})
+    ]},options:trendOpts()});
+
+        mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[4,5,6,8,9,10],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
     mkMarketChart('hoist-market-grid',['AZ','CA','CO','IA','TX'],[16,17,18,19,22],['#e87722','#2ecc71','#3498db','#9b59b6','#f1c40f']);
 
     document.getElementById('as-of').textContent='As of Jun 2026';
