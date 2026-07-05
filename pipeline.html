@@ -67,12 +67,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
     <div class="as-of" id="as-of"></div>
   </div>
   <div id="pip-loading">Loading data&hellip;</div>
-  <div id="pip-content" style="display:none;"><div class="section-label" style="margin-bottom:10px;font-size:11px;">Most Recent Month: <span id="kpi-month-label" style="color:var(--orange);text-transform:none;font-family:Barlow,sans-serif;letter-spacing:0;"></span><span></span></div><div class="g3"><div class="mc"><div class="ml">Quotes</div><div class="mv" id="kpi-quotes-new">&mdash;</div></div><div class="mc"><div class="ml">FQ</div><div class="mv" id="kpi-fq-new">&mdash;</div></div><div class="mc"><div class="ml">Proj</div><div class="mv" id="kpi-proj-new">&mdash;</div></div></div><div class="card" style="margin-top:12px;margin-bottom:12px;"><div class="ct"><i class="ti ti-chart-line"></i> Wins, First Quotes &amp; Total Quoted Over Time</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-combined"></canvas></div></div><div class="card" style="margin-top:12px;margin-bottom:4px;"><div class="ct"><i class="ti ti-trophy"></i> Monthly Wins (Bar)</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-wins-bar"></canvas></div></div>
-    <div class="section-label">Last 12 Months <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
-    <div class="g2">
-      <div class="mc"><div class="ml">Total Quotes</div><div class="mv" id="kpi-quotes">&mdash;</div><div class="ms" id="kpi-quotes-sub"></div></div>
-      <div class="mc"><div class="ml">Avg Quotes / Month</div><div class="mv" id="kpi-avg">&mdash;</div><div class="ms" id="kpi-avg-sub"></div></div>
-    </div>
+  <div id="pip-content" style="display:none;"><div class="section-label" style="margin-bottom:10px;font-size:11px;">Most Recent Month: <span></span><span id="kpi-month-label" style="flex:0;letter-spacing:1px;white-space:nowrap;color:var(--orange);text-transform:none;font-family:Barlow,sans-serif;"></span></div><div class="g3"><div class="mc"><div class="ml">Quotes</div><div class="mv" id="kpi-quotes-new">&mdash;</div></div><div class="mc"><div class="ml">FQ</div><div class="mv" id="kpi-fq-new">&mdash;</div></div><div class="mc"><div class="ml">Proj</div><div class="mv" id="kpi-proj-new">&mdash;</div></div></div><div class="card" style="margin-top:12px;margin-bottom:12px;"><div class="ct"><i class="ti ti-chart-line"></i> Wins, First Quotes &amp; Total Quoted Over Time</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-trend-combined"></canvas></div></div><div class="card" style="margin-top:12px;margin-bottom:4px;"><div class="ct"><i class="ti ti-trophy"></i> Monthly Wins (Bar)</div><div class="chart-wrap" style="height:200px;"><canvas id="chart-wins-bar"></canvas></div></div>
     <div class="section-label" style="margin-top:8px;">Monthly Trend <span></span></div>
     <div class="tabs">
       <button class="tab-btn active" onclick="switchView('all',event)">All</button>
@@ -96,17 +91,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
         <table class="region-table" id="table-hoist"></table>
       </div>
     </div>
-    <div class="g2">
-      <div class="card">
-        <div class="ct"><i class="ti ti-chart-donut"></i> Quotes by Product Type</div>
-        <div class="chart-wrap-sm"><canvas id="chart-split-quotes"></canvas></div>
       </div>
-      <div class="card">
-        <div class="ct"><i class="ti ti-chart-donut"></i> Wins by Product Type</div>
-        <div class="chart-wrap-sm"><canvas id="chart-split-wins"></canvas></div>
-      </div>
-    </div>
-  </div>
 </div>
 <script>
 var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vTDYmBxo9dDf-OivydBWhOYEOUkLRJHloxK_a8C1HT2s1rKhfxdkOpQ__sum5abSkrrJ19xII4KcvFU/pub?gid=561957665&single=true&output=csv';
@@ -146,11 +131,6 @@ async function loadData(){
     const wR=allWins.slice(start);
     const totalQ=qR.reduce((a,b)=>a+b,0);
     const avgQ=mR.length?Math.round(totalQ/mR.length):0;
-    document.getElementById('kpi-quotes').textContent=totalQ;
-    document.getElementById('kpi-quotes-sub').textContent='Rolling 12 months';
-    document.getElementById('kpi-avg').textContent=avgQ;
-    document.getElementById('kpi-avg-sub').textContent='Per month avg';
-    document.getElementById('current-date').textContent=mR[mR.length-1]||'';
     buildMonthly(mR,qR,wR);
     function buildRegionRows(startRow,endRow){
       const result=[];
@@ -165,12 +145,6 @@ async function loadData(){
     }
     buildTable('table-tc',buildRegionRows(2,7));
     buildTable('table-hoist',buildRegionRows(11,16));
-    const tcTQ=tcTotal.slice(start).reduce((a,b)=>a+b,0);
-    const hTQ=hTotal.slice(start).reduce((a,b)=>a+b,0);
-    const tcTW=tcWins.slice(start).reduce((a,b)=>a+b,0);
-    const hTW=hWins.slice(start).reduce((a,b)=>a+b,0);
-    buildDonut('chart-split-quotes',['Tower Crane','Hoist'],[tcTQ,hTQ],['#e87722','#3b82f6']);
-    buildDonut('chart-split-wins',['Tower Crane','Hoist'],[tcTW,hTW],['#e87722','#3b82f6']);
     document.querySelectorAll('.tab-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -182,7 +156,7 @@ async function loadData(){
       });
     });
     
-var newScd={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.15)'}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}};var quotesArr2=getMonthVals(tcRow,2).map(function(v,i){return v+(getMonthVals(hRow,2)[i]||0);});var winsArr2=getMonthVals(tcRow,3).map(function(v,i){return v+(getMonthVals(hRow,3)[i]||0);});var fqArr2=getMonthVals(tcRow,0);var projArr2=getMonthVals(tcRow,1);var li=months.length-1;document.getElementById('kpi-month-label').textContent=months[li]||'';document.getElementById('kpi-quotes-new').textContent=quotesArr2[li]||0;document.getElementById('kpi-fq-new').textContent=fqArr2[li]||0;document.getElementById('kpi-proj-new').textContent=projArr2[li]||0;new Chart(document.getElementById('chart-trend-combined'),{type:'line',data:{labels:months,datasets:[{label:'FQ',data:fqArr2,borderColor:'#2ecc71',backgroundColor:'rgba(46,204,113,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Proj',data:projArr2,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Quotes',data:quotesArr2,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2}]},options:{...JSON.parse(JSON.stringify(newScd)),plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:11},boxWidth:12,padding:16}}}}});new Chart(document.getElementById('chart-wins-bar'),{type:'bar',data:{labels:months.slice(-12),datasets:[{label:'Wins',data:winsArr2.slice(-12),backgroundColor:'rgba(232,119,34,0.7)',borderColor:'#e87722',borderWidth:1,borderRadius:3}]},options:{...JSON.parse(JSON.stringify(newScd)),barPercentage:1,categoryPercentage:1,scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:'rgba(255,255,255,0.15)'}}}}});document.getElementById('pip-loading').style.display='none';
+var newScd={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.15)'}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.15)'}}}};var quotesArr2=getMonthVals(tcRow,2).map(function(v,i){return v+(getMonthVals(hRow,2)[i]||0);});var winsArr2=getMonthVals(tcRow,3).map(function(v,i){return v+(getMonthVals(hRow,3)[i]||0);});var fqArr2=getMonthVals(tcRow,0);var projArr2=getMonthVals(tcRow,1);var li=months.length-1;document.getElementById('kpi-month-label').textContent=months[li]||'';document.getElementById('kpi-quotes-new').textContent=quotesArr2[li]||0;document.getElementById('kpi-fq-new').textContent=fqArr2[li]||0;document.getElementById('kpi-proj-new').textContent=projArr2[li]||0;new Chart(document.getElementById('chart-trend-combined'),{type:'line',data:{labels:months,datasets:[{label:'First Time Project Quotes',data:fqArr2,borderColor:'#2ecc71',backgroundColor:'rgba(46,204,113,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2},{label:'Total Projects Quoted',data:projArr2,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',tension:0.3,fill:false,borderWidth:2,pointRadius:2}]},options:{...JSON.parse(JSON.stringify(newScd)),plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:11},boxWidth:12,padding:16}}}}});new Chart(document.getElementById('chart-wins-bar'),{type:'bar',data:{labels:months.slice(-12),datasets:[{label:'Wins',data:winsArr2.slice(-12),backgroundColor:'rgba(232,119,34,0.7)',borderColor:'#e87722',borderWidth:1,borderRadius:3}]},options:{...JSON.parse(JSON.stringify(newScd)),barPercentage:1,categoryPercentage:1,scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:'rgba(255,255,255,0.15)'}}}}});document.getElementById('pip-loading').style.display='none';
     document.getElementById('pip-content').style.display='';
   }catch(e){
     document.getElementById('pip-loading').textContent='Error: '+e.message;
