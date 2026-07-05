@@ -55,14 +55,14 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div id="pl-content" style="display:none;">
 <div class="section-label">Current <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
 <div class="g3">
-<div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-rev">&mdash;</div><div class="ms" id="kpi-rev-sub"></div></div>
-<div class="mc"><div class="ml">TTM EBITDA</div><div class="mv" id="kpi-ebitda">&mdash;</div><div class="ms" id="kpi-ebitda-sub"></div></div>
-<div class="mc"><div class="ml">TTM Net Income</div><div class="mv" id="kpi-net">&mdash;</div><div class="ms" id="kpi-net-sub"></div></div>
+<div class="mc"><div class="ml">Revenue</div><div class="mv" id="kpi-rev">&mdash;</div><div class="ms" id="kpi-rev-sub"></div></div>
+<div class="mc"><div class="ml">EBITDA</div><div class="mv" id="kpi-ebitda">&mdash;</div><div class="ms" id="kpi-ebitda-sub"></div></div>
+<div class="mc"><div class="ml">Net Income</div><div class="mv" id="kpi-net">&mdash;</div><div class="ms" id="kpi-net-sub"></div></div>
 </div>
 <div class="g3">
-<div class="mc"><div class="ml">EBITDA Margin</div><div class="mv" id="kpi-ebitda-pct">&mdash;</div><div class="ms" id="kpi-ebitda-pct-sub"></div></div>
-<div class="mc"><div class="ml">Net Margin</div><div class="mv" id="kpi-net-pct">&mdash;</div><div class="ms" id="kpi-net-pct-sub"></div></div>
-<div class="mc"><div class="ml">Pro Forma Cash Flow</div><div class="mv" id="kpi-cf">&mdash;</div><div class="ms" id="kpi-cf-sub"></div></div>
+<div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-ttm-rev">&mdash;</div><div class="ms" id="kpi-ttm-rev-sub"></div></div>
+<div class="mc"><div class="ml">TTM EBITDA</div><div class="mv" id="kpi-ttm-ebitda">&mdash;</div><div class="ms" id="kpi-ttm-ebitda-sub"></div></div>
+<div class="mc"><div class="ml">TTM Net Income</div><div class="mv" id="kpi-ttm-net">&mdash;</div><div class="ms" id="kpi-ttm-net-sub"></div></div>
 </div>
 <div class="section-label" style="margin-top:8px;">Historical <span></span></div>
 <div class="card">
@@ -107,24 +107,24 @@ var n=headers.length;
 var months=headers.slice(1,n-1).map(function(h){return h.replace(/"/g,'').trim();});
 var lastMonth=months[months.length-1];
 var ttmRev=parseNum(revRow[n-1]),ttmEBITDA=parseNum(ebitdaRow[n-1]),ttmNet=parseNum(netRow[n-1]),ttmCF=parseNum(cfRow[n-1]),ttmEPct=parseNum(ebitdaPctRow[n-1]),ttmNPct=parseNum(netPctRow[n-1]);
-var revVals=revRow.slice(1,n-1).map(parseNum),ebitdaVals=ebitdaRow.slice(1,n-1).map(parseNum),ebitdaPctVals=ebitdaPctRow.slice(1,n-1).map(parseNum),netPctVals=netPctRow.slice(1,n-1).map(parseNum);
-document.getElementById('kpi-rev').textContent=fmtM(ttmRev);
-document.getElementById('kpi-rev-sub').textContent='Trailing 12 months';
-document.getElementById('kpi-ebitda').textContent=fmtM(ttmEBITDA);
-document.getElementById('kpi-ebitda-sub').className=ttmEBITDA>=0?'ms up':'ms dn';
-document.getElementById('kpi-ebitda-sub').textContent=fmtPct(ttmEPct)+' margin';
-document.getElementById('kpi-net').textContent=fmtM(ttmNet);
-document.getElementById('kpi-net-sub').className=ttmNet>=0?'ms up':'ms dn';
-document.getElementById('kpi-net-sub').textContent=fmtPct(ttmNPct)+' margin';
-document.getElementById('kpi-ebitda-pct').textContent=fmtPct(ttmEPct);
-document.getElementById('kpi-ebitda-pct-sub').className=ttmEPct>=0?'ms up':'ms dn';
-document.getElementById('kpi-ebitda-pct-sub').textContent='TTM';
-document.getElementById('kpi-net-pct').textContent=fmtPct(ttmNPct);
-document.getElementById('kpi-net-pct-sub').className=ttmNPct>=0?'ms up':'ms dn';
-document.getElementById('kpi-net-pct-sub').textContent='TTM';
-document.getElementById('kpi-cf').textContent=fmtM(ttmCF);
-document.getElementById('kpi-cf-sub').className=ttmCF>=0?'ms up':'ms dn';
-document.getElementById('kpi-cf-sub').textContent='Pro forma TTM';
+var revVals=revRow.slice(1,n-1).map(parseNum),ebitdaVals=ebitdaRow.slice(1,n-1).map(parseNum),netVals=netRow.slice(1,n-1).map(parseNum),ebitdaPctVals=ebitdaPctRow.slice(1,n-1).map(parseNum),netPctVals=netPctRow.slice(1,n-1).map(parseNum);
+var curRev=revVals[revVals.length-1],curEBITDA=ebitdaVals[ebitdaVals.length-1],curNet=netVals[netVals.length-1],curEPct=ebitdaPctVals[ebitdaPctVals.length-1],curNPct=netPctVals[netPctVals.length-1];
+document.getElementById('kpi-rev').textContent=fmtM(curRev);
+document.getElementById('kpi-rev-sub').textContent=lastMonth;
+document.getElementById('kpi-ebitda').textContent=fmtM(curEBITDA);
+document.getElementById('kpi-ebitda-sub').className=curEBITDA>=0?'ms up':'ms dn';
+document.getElementById('kpi-ebitda-sub').textContent=fmtPct(curEPct)+' margin';
+document.getElementById('kpi-net').textContent=fmtM(curNet);
+document.getElementById('kpi-net-sub').className=curNet>=0?'ms up':'ms dn';
+document.getElementById('kpi-net-sub').textContent=fmtPct(curNPct)+' margin';
+document.getElementById('kpi-ttm-rev').textContent=fmtM(ttmRev);
+document.getElementById('kpi-ttm-rev-sub').textContent='Trailing 12 months';
+document.getElementById('kpi-ttm-ebitda').textContent=fmtM(ttmEBITDA);
+document.getElementById('kpi-ttm-ebitda-sub').className=ttmEBITDA>=0?'ms up':'ms dn';
+document.getElementById('kpi-ttm-ebitda-sub').textContent=fmtPct(ttmEPct)+' margin';
+document.getElementById('kpi-ttm-net').textContent=fmtM(ttmNet);
+document.getElementById('kpi-ttm-net-sub').className=ttmNet>=0?'ms up':'ms dn';
+document.getElementById('kpi-ttm-net-sub').textContent=fmtPct(ttmNPct)+' margin';
 document.getElementById('current-date').textContent=lastMonth;
 document.getElementById('as-of').textContent='Data as of '+lastMonth;
 var scaleX={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.05)'}};
