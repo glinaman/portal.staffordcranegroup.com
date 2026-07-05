@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1b2e">
-<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <title>AR / AP Aging &mdash; SCG Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -62,7 +61,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div class="topbar">
 <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
 <div class="tb-title">AR / AP Aging</div>
-<div class="tb-role" id="tb-role"></div>
 </div>
 <div class="content">
 <div class="ph">
@@ -182,8 +180,7 @@ new Chart(document.getElementById('chart-ap-aging'),{type:'bar',data:{labels:lab
 document.getElementById('ar-loading').style.display='none';
 document.getElementById('ar-content').style.display='block';
 }).catch(function(e){console.error('AR load error:',e);document.getElementById('ar-loading').textContent='Error loading data.';});}
-function checkMember(){if(window.$memberstackDom){window.$memberstackDom.getCurrentMember().then(function(result){var member=result.data;if(!member){window.location.href='index.html';return;}var role='employee';if(member.planConnections&&member.planConnections.length>0){var planId=(member.planConnections[0].planId||'').toLowerCase();if(planId.includes('admin'))role='admin';else if(planId.includes('exec'))role='exec';}document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';loadData();});}else{setTimeout(checkMember,100);}}
-checkMember();
+loadData();
 </script>
 </body>
 </html>
