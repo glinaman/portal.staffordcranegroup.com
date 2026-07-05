@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1b2e">
-<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <title>P&L — SCG Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -38,57 +37,49 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
 .ct i{color:var(--orange);font-size:15px;}
 .chart-wrap{position:relative;height:260px;}
-.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-muted);}
-.locked i{font-size:40px;color:var(--text-dim);margin-bottom:14px;}
-.locked h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;color:var(--text-muted);}
-.locked p{font-size:11px;max-width:230px;}
 #pl-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
-  <div class="tb-title">P&amp;L</div>
-  <div class="tb-role" id="tb-role"></div>
+<a href="finance.html" class="back-link"><i class="ti ti-arrow-left"></i> Finance &amp; Reports</a>
+<div class="tb-title">P&amp;L</div>
+<div class="tb-role" id="tb-role"></div>
 </div>
 <div class="content">
-  <div class="ph">
-    <div><div class="ptitle">Profit &amp; Loss</div><div class="psub">Revenue, EBITDA, and net income — trailing 12 months</div></div>
-    <div class="as-of" id="as-of"></div>
-  </div>
-  <div id="pl-loading">Loading data&hellip;</div>
-  <div id="pl-content" style="display:none;">
-    <div class="section-label">Current <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
-    <div class="g3">
-      <div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-rev">&mdash;</div><div class="ms" id="kpi-rev-sub"></div></div>
-      <div class="mc"><div class="ml">TTM EBITDA</div><div class="mv" id="kpi-ebitda">&mdash;</div><div class="ms" id="kpi-ebitda-sub"></div></div>
-      <div class="mc"><div class="ml">TTM Net Income</div><div class="mv" id="kpi-net">&mdash;</div><div class="ms" id="kpi-net-sub"></div></div>
-    </div>
-    <div class="g3">
-      <div class="mc"><div class="ml">EBITDA Margin</div><div class="mv" id="kpi-ebitda-pct">&mdash;</div><div class="ms" id="kpi-ebitda-pct-sub"></div></div>
-      <div class="mc"><div class="ml">Net Margin</div><div class="mv" id="kpi-net-pct">&mdash;</div><div class="ms" id="kpi-net-pct-sub"></div></div>
-      <div class="mc"><div class="ml">Pro Forma Cash Flow</div><div class="mv" id="kpi-cf">&mdash;</div><div class="ms" id="kpi-cf-sub"></div></div>
-    </div>
-    <div class="section-label" style="margin-top:8px;">Historical <span></span></div>
-    <div class="card">
-      <div class="ct"><i class="ti ti-chart-bar"></i> Revenue &amp; EBITDA by Month</div>
-      <div class="chart-wrap"><canvas id="chart-rev"></canvas></div>
-    </div>
-    <div class="g2">
-      <div class="card">
-        <div class="ct"><i class="ti ti-trending-up"></i> EBITDA Margin %</div>
-        <div class="chart-wrap"><canvas id="chart-ebitda-pct"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="ct"><i class="ti ti-trending-up"></i> Net Margin %</div>
-        <div class="chart-wrap"><canvas id="chart-net-pct"></canvas></div>
-      </div>
-    </div>
-  </div>
-  <div id="pl-locked" class="locked" style="display:none;">
-    <i class="ti ti-lock"></i><h3>Executive Access Only</h3>
-    <p>This section is restricted to Admin and Executive members.</p>
-  </div>
+<div class="ph">
+<div><div class="ptitle">Profit &amp; Loss</div><div class="psub">Revenue, EBITDA, and net income — trailing 12 months</div></div>
+<div class="as-of" id="as-of"></div>
+</div>
+<div id="pl-loading">Loading data&hellip;</div>
+<div id="pl-content" style="display:none;">
+<div class="section-label">Current <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
+<div class="g3">
+<div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-rev">&mdash;</div><div class="ms" id="kpi-rev-sub"></div></div>
+<div class="mc"><div class="ml">TTM EBITDA</div><div class="mv" id="kpi-ebitda">&mdash;</div><div class="ms" id="kpi-ebitda-sub"></div></div>
+<div class="mc"><div class="ml">TTM Net Income</div><div class="mv" id="kpi-net">&mdash;</div><div class="ms" id="kpi-net-sub"></div></div>
+</div>
+<div class="g3">
+<div class="mc"><div class="ml">EBITDA Margin</div><div class="mv" id="kpi-ebitda-pct">&mdash;</div><div class="ms" id="kpi-ebitda-pct-sub"></div></div>
+<div class="mc"><div class="ml">Net Margin</div><div class="mv" id="kpi-net-pct">&mdash;</div><div class="ms" id="kpi-net-pct-sub"></div></div>
+<div class="mc"><div class="ml">Pro Forma Cash Flow</div><div class="mv" id="kpi-cf">&mdash;</div><div class="ms" id="kpi-cf-sub"></div></div>
+</div>
+<div class="section-label" style="margin-top:8px;">Historical <span></span></div>
+<div class="card">
+<div class="ct"><i class="ti ti-chart-bar"></i> Revenue &amp; EBITDA by Month</div>
+<div class="chart-wrap"><canvas id="chart-rev"></canvas></div>
+</div>
+<div class="g2">
+<div class="card">
+<div class="ct"><i class="ti ti-trending-up"></i> EBITDA Margin %</div>
+<div class="chart-wrap"><canvas id="chart-ebitda-pct"></canvas></div>
+</div>
+<div class="card">
+<div class="ct"><i class="ti ti-trending-up"></i> Net Margin %</div>
+<div class="chart-wrap"><canvas id="chart-net-pct"></canvas></div>
+</div>
+</div>
+</div>
 </div>
 <script>
 var SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3/pub?single=true&output=csv&gid=234022854';
@@ -97,65 +88,58 @@ function fmtPct(n){return n.toFixed(1)+'%';}
 function parseNum(s){return parseFloat((s||'').replace(/[$,%s"]/g,''))||0;}
 function parseCSVLine(line){var cols=[],cur='',inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());return cols;}
 function loadData(){
-  fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){
-    var lines=text.trim().split('\n');
-    var headers=[],revRow=[],ebitdaRow=[],netRow=[],cfRow=[],ebitdaPctRow=[],netPctRow=[];
-    for(var i=0;i<lines.length;i++){
-      var cols=parseCSVLine(lines[i]);
-      var label=cols[0].replace(/"/g,'').trim();
-      if(i===1){headers=cols;}
-      if(label==='Revenue')revRow=cols;
-      if(label==='EBITDA')ebitdaRow=cols;
-      if(label==='Net Income')netRow=cols;
-      if(label==='Pro Forma Cash Flow')cfRow=cols;
-      if(label==='EBITDA Margin %')ebitdaPctRow=cols;
-      if(label==='Net Margin %')netPctRow=cols;
-    }
-    if(!headers.length||!revRow.length)throw new Error('no data');
-    var n=headers.length;
-    var months=headers.slice(1,n-1).map(function(h){return h.replace(/"/g,'').trim();});
-    var lastMonth=months[months.length-1];
-    var ttmRev=parseNum(revRow[n-1]),ttmEBITDA=parseNum(ebitdaRow[n-1]),ttmNet=parseNum(netRow[n-1]),ttmCF=parseNum(cfRow[n-1]),ttmEPct=parseNum(ebitdaPctRow[n-1]),ttmNPct=parseNum(netPctRow[n-1]);
-    var revVals=revRow.slice(1,n-1).map(parseNum),ebitdaVals=ebitdaRow.slice(1,n-1).map(parseNum),ebitdaPctVals=ebitdaPctRow.slice(1,n-1).map(parseNum),netPctVals=netPctRow.slice(1,n-1).map(parseNum);
-    document.getElementById('kpi-rev').textContent=fmtM(ttmRev);
-    document.getElementById('kpi-rev-sub').textContent='Trailing 12 months';
-    document.getElementById('kpi-ebitda').textContent=fmtM(ttmEBITDA);
-    document.getElementById('kpi-ebitda-sub').className=ttmEBITDA>=0?'ms up':'ms dn';
-    document.getElementById('kpi-ebitda-sub').textContent=fmtPct(ttmEPct)+' margin';
-    document.getElementById('kpi-net').textContent=fmtM(ttmNet);
-    document.getElementById('kpi-net-sub').className=ttmNet>=0?'ms up':'ms dn';
-    document.getElementById('kpi-net-sub').textContent=fmtPct(ttmNPct)+' margin';
-    document.getElementById('kpi-ebitda-pct').textContent=fmtPct(ttmEPct);
-    document.getElementById('kpi-ebitda-pct-sub').className=ttmEPct>=0?'ms up':'ms dn';
-    document.getElementById('kpi-ebitda-pct-sub').textContent='TTM';
-    document.getElementById('kpi-net-pct').textContent=fmtPct(ttmNPct);
-    document.getElementById('kpi-net-pct-sub').className=ttmNPct>=0?'ms up':'ms dn';
-    document.getElementById('kpi-net-pct-sub').textContent='TTM';
-    document.getElementById('kpi-cf').textContent=fmtM(ttmCF);
-    document.getElementById('kpi-cf-sub').className=ttmCF>=0?'ms up':'ms dn';
-    document.getElementById('kpi-cf-sub').textContent='Pro forma TTM';
-    document.getElementById('current-date').textContent=lastMonth;
-    document.getElementById('as-of').textContent='Data as of '+lastMonth;
-    var scaleX={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.05)'}};
-    var scaleYdollar={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},callback:function(v){return '$'+(v/1e6).toFixed(1)+'M';}},grid:{color:'rgba(255,255,255,0.05)'}};
-    var scaleYpct={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},callback:function(v){return v+'%';}},grid:{color:'rgba(255,255,255,0.05)'}};
-    var legend={labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
-    new Chart(document.getElementById('chart-rev'),{type:'bar',data:{labels:months,datasets:[{label:'Revenue',data:revVals,backgroundColor:'#3498db',borderRadius:3},{label:'EBITDA',data:ebitdaVals,backgroundColor:'#e87722',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYdollar}}});
-    new Chart(document.getElementById('chart-ebitda-pct'),{type:'line',data:{labels:months,datasets:[{label:'EBITDA Margin %',data:ebitdaPctVals,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',pointBackgroundColor:'#e87722',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYpct}}});
-    new Chart(document.getElementById('chart-net-pct'),{type:'line',data:{labels:months,datasets:[{label:'Net Margin %',data:netPctVals,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',pointBackgroundColor:'#3498db',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYpct}}});
-  }).catch(function(e){console.error('P&L load error:',e);document.getElementById('as-of').textContent='Data unavailable';});
+fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){
+var lines=text.trim().split('
+');
+var headers=[],revRow=[],ebitdaRow=[],netRow=[],cfRow=[],ebitdaPctRow=[],netPctRow=[];
+for(var i=0;i<lines.length;i++){
+var cols=parseCSVLine(lines[i]);
+var label=cols[0].replace(/"/g,'').trim();
+if(i===1){headers=cols;}
+if(label==='Revenue')revRow=cols;
+if(label==='EBITDA')ebitdaRow=cols;
+if(label==='Net Income')netRow=cols;
+if(label==='Pro Forma Cash Flow')cfRow=cols;
+if(label==='EBITDA Margin %')ebitdaPctRow=cols;
+if(label==='Net Margin %')netPctRow=cols;
 }
-function showPL(role){
-  document.getElementById('pl-loading').style.display='none';
-  document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';
-  if(role==='admin'||role==='exec'){document.getElementById('pl-content').style.display='block';document.getElementById('pl-locked').style.display='none';loadData();}
-  else{document.getElementById('pl-content').style.display='none';document.getElementById('pl-locked').style.display='flex';}
+if(!headers.length||!revRow.length)throw new Error('no data');
+var n=headers.length;
+var months=headers.slice(1,n-1).map(function(h){return h.replace(/"/g,'').trim();});
+var lastMonth=months[months.length-1];
+var ttmRev=parseNum(revRow[n-1]),ttmEBITDA=parseNum(ebitdaRow[n-1]),ttmNet=parseNum(netRow[n-1]),ttmCF=parseNum(cfRow[n-1]),ttmEPct=parseNum(ebitdaPctRow[n-1]),ttmNPct=parseNum(netPctRow[n-1]);
+var revVals=revRow.slice(1,n-1).map(parseNum),ebitdaVals=ebitdaRow.slice(1,n-1).map(parseNum),ebitdaPctVals=ebitdaPctRow.slice(1,n-1).map(parseNum),netPctVals=netPctRow.slice(1,n-1).map(parseNum);
+document.getElementById('kpi-rev').textContent=fmtM(ttmRev);
+document.getElementById('kpi-rev-sub').textContent='Trailing 12 months';
+document.getElementById('kpi-ebitda').textContent=fmtM(ttmEBITDA);
+document.getElementById('kpi-ebitda-sub').className=ttmEBITDA>=0?'ms up':'ms dn';
+document.getElementById('kpi-ebitda-sub').textContent=fmtPct(ttmEPct)+' margin';
+document.getElementById('kpi-net').textContent=fmtM(ttmNet);
+document.getElementById('kpi-net-sub').className=ttmNet>=0?'ms up':'ms dn';
+document.getElementById('kpi-net-sub').textContent=fmtPct(ttmNPct)+' margin';
+document.getElementById('kpi-ebitda-pct').textContent=fmtPct(ttmEPct);
+document.getElementById('kpi-ebitda-pct-sub').className=ttmEPct>=0?'ms up':'ms dn';
+document.getElementById('kpi-ebitda-pct-sub').textContent='TTM';
+document.getElementById('kpi-net-pct').textContent=fmtPct(ttmNPct);
+document.getElementById('kpi-net-pct-sub').className=ttmNPct>=0?'ms up':'ms dn';
+document.getElementById('kpi-net-pct-sub').textContent='TTM';
+document.getElementById('kpi-cf').textContent=fmtM(ttmCF);
+document.getElementById('kpi-cf-sub').className=ttmCF>=0?'ms up':'ms dn';
+document.getElementById('kpi-cf-sub').textContent='Pro forma TTM';
+document.getElementById('current-date').textContent=lastMonth;
+document.getElementById('as-of').textContent='Data as of '+lastMonth;
+var scaleX={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10}},grid:{color:'rgba(255,255,255,0.05)'}};
+var scaleYdollar={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},callback:function(v){return '$'+(v/1e6).toFixed(1)+'M';}},grid:{color:'rgba(255,255,255,0.05)'}};
+var scaleYpct={ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},callback:function(v){return v+'%';}},grid:{color:'rgba(255,255,255,0.05)'}};
+var legend={labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
+new Chart(document.getElementById('chart-rev'),{type:'bar',data:{labels:months,datasets:[{label:'Revenue',data:revVals,backgroundColor:'#3498db',borderRadius:3},{label:'EBITDA',data:ebitdaVals,backgroundColor:'#e87722',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYdollar}}});
+new Chart(document.getElementById('chart-ebitda-pct'),{type:'line',data:{labels:months,datasets:[{label:'EBITDA Margin %',data:ebitdaPctVals,borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',pointBackgroundColor:'#e87722',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYpct}}});
+new Chart(document.getElementById('chart-net-pct'),{type:'line',data:{labels:months,datasets:[{label:'Net Margin %',data:netPctVals,borderColor:'#3498db',backgroundColor:'rgba(52,152,219,0.08)',pointBackgroundColor:'#3498db',tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},scales:{x:scaleX,y:scaleYpct}}});
+}).catch(function(e){console.error('P&L load error:',e);document.getElementById('as-of').textContent='Data unavailable';});
 }
-function checkMember(){
-  if(window.$memberstackDom){window.$memberstackDom.getCurrentMember().then(function(result){var member=result.data;if(!member){window.location.href='finance.html';return;}var role='employee';if(member.planConnections&&member.planConnections.length>0){var planId=(member.planConnections[0].planId||'').toLowerCase();if(planId.includes('admin'))role='admin';else if(planId.includes('exec'))role='exec';}showPL(role);});}
-  else{setTimeout(checkMember,100);}
-}
-checkMember();
+document.getElementById('pl-loading').style.display='none';
+document.getElementById('pl-content').style.display='block';
+loadData();
 </script>
 </body>
 </html>
