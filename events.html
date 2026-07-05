@@ -32,10 +32,11 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .section-label i{color:var(--orange);font-size:15px;}
 .card{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
 .chart-wrap{position:relative;height:320px;}
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .stat{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
 .stat-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--orange);}
 .stat-label{font-size:11px;color:var(--text-muted);letter-spacing:0.5px;margin-top:2px;}
+.stat-sub{font-size:11px;color:var(--text);letter-spacing:0.3px;margin-top:6px;font-weight:600;}
 .tbl{width:100%;border-collapse:collapse;font-size:12px;}
 .tbl th{background:var(--navy-light);color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
 .tbl td{padding:7px 10px;border-bottom:1px solid var(--border);}
@@ -44,10 +45,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;}
 .badge-tc{background:rgba(52,152,219,0.15);color:#3498db;}
 .badge-hoist{background:rgba(155,89,182,0.15);color:#9b59b6;}
-.lookahead-banner{background:rgba(232,119,34,0.08);border:1px solid var(--border-o);border-radius:8px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
-.lookahead-banner i{color:var(--orange);font-size:20px;}
-.lookahead-banner .lh-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange);}
-.lookahead-banner .lh-sub{font-size:11px;color:var(--text-muted);}
 #loading{text-align:center;padding:60px;color:var(--text-muted);font-size:13px;}
 </style>
 </head>
@@ -67,19 +64,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   <div id="main-content" style="display:none;">
     <!-- Stats -->
     <div class="stat-row" id="stat-row"></div>
-
-    <!-- 30 Day Lookahead -->
-    <div class="lookahead-banner" id="lookahead-banner" style="display:none;">
-      <i class="ti ti-calendar-due"></i>
-      <div>
-        <div class="lh-title">30-Day Lookahead</div>
-        <div class="lh-sub" id="lookahead-sub"></div>
-      </div>
-      <div style="margin-left:auto;text-align:right;">
-        <div class="stat-val" id="lookahead-total" style="font-size:22px;"></div>
-        <div class="stat-label">PROJECTED EVENTS</div>
-      </div>
-    </div>
 
     <!-- Chart -->
     <div style="margin-bottom:14px;">
@@ -179,6 +163,16 @@ fetch(URL).then(function(r){return r.text();}).then(function(csv){
   var lookahead=data.lookahead;
 
   // --- Stats ---
+  var MONTHS_ABBR=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function monthLabel(name,offset){
+    var parts=name.split(' ');
+    var idx=MONTHS_ABBR.map(function(x){return x.toLowerCase();}).indexOf(parts[0].substring(0,3).toLowerCase());
+    var year=parseInt(parts[1],10);
+    idx+=offset;
+    while(idx<0){idx+=12;year--;}
+    while(idx>11){idx-=12;year++;}
+    return MONTHS_ABBR[idx]+" '"+String(year).slice(2);
+  }
   var totalAll=0,totalTC=0,totalHoist=0;
   months.forEach(function(m){
     if(m.total){
@@ -189,20 +183,35 @@ fetch(URL).then(function(r){return r.text();}).then(function(csv){
       });
     }
   });
-  var latestTotal=months.length>0&&months[months.length-1].total?months[months.length-1].total.vals[5]:0;
+  var avgAll=months.length?(totalAll/months.length).toFixed(1):'0';
+  var avgTC=months.length?(totalTC/months.length).toFixed(1):'0';
+  var avgHoist=months.length?(totalHoist/months.length).toFixed(1):'0';
+  var latestMonth=months.length>0?months[months.length-1]:null;
+  var latestTotal=latestMonth&&latestMonth.total?latestMonth.total.vals[5]:0;
+  var latestTC=0,latestHoist=0;
+  if(latestMonth){
+    latestMonth.rows.forEach(function(r){
+      if(r.name.startsWith('TC'))latestTC+=r.vals[5];
+      if(r.name.startsWith('Hoist'))latestHoist+=r.vals[5];
+    });
+  }
+  var latestLabel=latestMonth?monthLabel(latestMonth.name,0):'';
+  var nextLabel=latestMonth?monthLabel(latestMonth.name,1):'';
+  var nextTotal=0,nextTC=0,nextHoist=0;
+  if(lookahead&&lookahead.total){
+    nextTotal=lookahead.total.vals[5];
+    lookahead.rows.forEach(function(r){
+      if(r.name.startsWith('TC'))nextTC+=r.vals[5];
+      if(r.name.startsWith('Hoist'))nextHoist+=r.vals[5];
+    });
+  }
   var statRow=document.getElementById('stat-row');
   statRow.innerHTML=
-    '<div class="stat"><div class="stat-val">'+totalAll+'</div><div class="stat-label">TOTAL EVENTS (12 MO)</div></div>'+
-    '<div class="stat"><div class="stat-val">'+totalTC+'</div><div class="stat-label">TOWER CRANE EVENTS</div></div>'+
-    '<div class="stat"><div class="stat-val">'+totalHoist+'</div><div class="stat-label">HOIST EVENTS</div></div>'+
-    '<div class="stat"><div class="stat-val">'+latestTotal+'</div><div class="stat-label">LATEST MONTH TOTAL</div></div>';
-
-  // --- Lookahead banner ---
-  if(lookahead&&lookahead.total){
-    document.getElementById('lookahead-banner').style.display='flex';
-    document.getElementById('lookahead-total').textContent=lookahead.total.vals[5];
-    document.getElementById('lookahead-sub').textContent='Upcoming installations, climbs, dismantles & more';
-  }
+    '<div class="stat"><div class="stat-val">'+totalAll+'</div><div class="stat-label">TOTAL EVENTS (12 MO)</div><div class="stat-sub">Avg '+avgAll+'/mo</div></div>'+
+    '<div class="stat"><div class="stat-val">'+totalTC+'</div><div class="stat-label">TOWER CRANE EVENTS</div><div class="stat-sub">Avg '+avgTC+'/mo</div></div>'+
+    '<div class="stat"><div class="stat-val">'+totalHoist+'</div><div class="stat-label">HOIST EVENTS</div><div class="stat-sub">Avg '+avgHoist+'/mo</div></div>'+
+    '<div class="stat"><div class="stat-val">'+latestTotal+'</div><div class="stat-label">LATEST MONTH ('+latestLabel+')</div><div class="stat-sub">TC '+latestTC+' &middot; Hoist '+latestHoist+'</div></div>'+
+    '<div class="stat"><div class="stat-val">'+nextTotal+'</div><div class="stat-label">NEXT MONTH ('+nextLabel+')</div><div class="stat-sub">TC '+nextTC+' &middot; Hoist '+nextHoist+'</div></div>';
 
   // --- Chart ---
   var labels=months.map(function(m){return m.name;});
@@ -212,6 +221,11 @@ fetch(URL).then(function(r){return r.text();}).then(function(csv){
   var hoistData=months.map(function(m){
     var t=0;m.rows.forEach(function(r){if(r.name.startsWith('Hoist'))t+=r.vals[5];});return t;
   });
+  var avgTotalPerMonth=totalAll/(months.length||1);
+  var avgLineData=months.map(function(){return avgTotalPerMonth;});
+  var stackMax=0;
+  months.forEach(function(m,idx){stackMax=Math.max(stackMax,tcData[idx]+hoistData[idx]);});
+  var yMax=Math.ceil(stackMax/5)*5+5;
   var ctx=document.getElementById('eventsChart').getContext('2d');
   new Chart(ctx,{
     type:'bar',
@@ -219,7 +233,8 @@ fetch(URL).then(function(r){return r.text();}).then(function(csv){
       labels:labels,
       datasets:[
         {label:'Tower Crane',data:tcData,backgroundColor:'rgba(52,152,219,0.8)',borderRadius:3},
-        {label:'Hoist',data:hoistData,backgroundColor:'rgba(155,89,182,0.8)',borderRadius:3}
+        {label:'Hoist',data:hoistData,backgroundColor:'rgba(155,89,182,0.8)',borderRadius:3},
+        {type:'line',label:'Average Total ('+avgTotalPerMonth.toFixed(1)+'/mo)',data:avgLineData,yAxisID:'y1',borderColor:'#e87722',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}
       ]
     },
     options:{
@@ -227,7 +242,8 @@ fetch(URL).then(function(r){return r.text();}).then(function(csv){
       plugins:{legend:{labels:{color:'#8ea3bc',font:{family:'Barlow',size:12}}}},
       scales:{
         x:{stacked:true,ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
-        y:{stacked:true,ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}
+        y:{stacked:true,min:0,max:yMax,ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true},
+        y1:{display:false,min:0,max:yMax}
       }
     }
   });
