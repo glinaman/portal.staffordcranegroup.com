@@ -59,6 +59,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div class="mc"><div class="ml">EBITDA</div><div class="mv" id="kpi-ebitda">&mdash;</div><div class="ms" id="kpi-ebitda-sub"></div></div>
 <div class="mc"><div class="ml">Net Income</div><div class="mv" id="kpi-net">&mdash;</div><div class="ms" id="kpi-net-sub"></div></div>
 </div>
+<div class="section-label" style="margin-top:8px;">Trailing Twelve Months <span></span></div>
 <div class="g3">
 <div class="mc"><div class="ml">TTM Revenue</div><div class="mv" id="kpi-ttm-rev">&mdash;</div><div class="ms" id="kpi-ttm-rev-sub"></div></div>
 <div class="mc"><div class="ml">TTM EBITDA</div><div class="mv" id="kpi-ttm-ebitda">&mdash;</div><div class="ms" id="kpi-ttm-ebitda-sub"></div></div>
@@ -110,7 +111,6 @@ var ttmRev=parseNum(revRow[n-1]),ttmEBITDA=parseNum(ebitdaRow[n-1]),ttmNet=parse
 var revVals=revRow.slice(1,n-1).map(parseNum),ebitdaVals=ebitdaRow.slice(1,n-1).map(parseNum),netVals=netRow.slice(1,n-1).map(parseNum),ebitdaPctVals=ebitdaPctRow.slice(1,n-1).map(parseNum),netPctVals=netPctRow.slice(1,n-1).map(parseNum);
 var curRev=revVals[revVals.length-1],curEBITDA=ebitdaVals[ebitdaVals.length-1],curNet=netVals[netVals.length-1],curEPct=ebitdaPctVals[ebitdaPctVals.length-1],curNPct=netPctVals[netPctVals.length-1];
 document.getElementById('kpi-rev').textContent=fmtM(curRev);
-document.getElementById('kpi-rev-sub').textContent=lastMonth;
 document.getElementById('kpi-ebitda').textContent=fmtM(curEBITDA);
 document.getElementById('kpi-ebitda-sub').className=curEBITDA>=0?'ms up':'ms dn';
 document.getElementById('kpi-ebitda-sub').textContent=fmtPct(curEPct)+' margin';
@@ -118,7 +118,6 @@ document.getElementById('kpi-net').textContent=fmtM(curNet);
 document.getElementById('kpi-net-sub').className=curNet>=0?'ms up':'ms dn';
 document.getElementById('kpi-net-sub').textContent=fmtPct(curNPct)+' margin';
 document.getElementById('kpi-ttm-rev').textContent=fmtM(ttmRev);
-document.getElementById('kpi-ttm-rev-sub').textContent='Trailing 12 months';
 document.getElementById('kpi-ttm-ebitda').textContent=fmtM(ttmEBITDA);
 document.getElementById('kpi-ttm-ebitda-sub').className=ttmEBITDA>=0?'ms up':'ms dn';
 document.getElementById('kpi-ttm-ebitda-sub').textContent=fmtPct(ttmEPct)+' margin';
