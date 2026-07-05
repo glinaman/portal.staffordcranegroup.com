@@ -143,8 +143,8 @@ async function loadData(){
       }
       return result;
     }
-    buildTable('table-tc',buildRegionRows(2,7));
-    buildTable('table-hoist',buildRegionRows(11,16));
+    buildTable('table-tc',buildRegionRows(3,7));
+    buildTable('table-hoist',buildRegionRows(13,16));
     document.querySelectorAll('.tab-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
