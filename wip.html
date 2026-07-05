@@ -85,8 +85,7 @@ function fmtM(n){ return '$'+(n/1e6).toFixed(1)+'M'; }
 function fmtPct(n){ return n.toFixed(1)+'%'; }
 
 function parseCSV(text){
-var lines = text.trim().split('
-');
+var lines = text.trim().split('\n');
 var dataRows = [];
 for(var i=0;i<lines.length;i++){
 var line = lines[i];
@@ -100,8 +99,8 @@ else if(ch===','&&!inQ){ cols.push(cur.trim()); cur=''; }
 else { cur+=ch; }
 }
 cols.push(cur.trim());
-var raw = cols[0].replace(/[$s]/g,'');
-if(raw.match(/^d{1,2}/d{1,2}/d{2,4}$/) || raw.match(/^d{1,2}/d{2,4}$/)){
+var raw = cols[0].replace(/[\$\s]/g,'');
+if(raw.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/) || raw.match(/^\d{1,2}\/\d{2,4}$/)){
 dataRows.push(cols);
 }
 }
@@ -109,7 +108,7 @@ return dataRows;
 }
 
 function fmtLabel(dateStr){
-var clean = dateStr.replace(/[$s"]/g,'').trim();
+var clean = dateStr.replace(/[\$\s"]/g,'').trim();
 var parts = clean.split('/');
 if(parts.length < 2) return clean;
 var month = parseInt(parts[0])-1;
@@ -119,7 +118,7 @@ return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
 }
 
 function parseNum(s){
-return parseFloat((s||'').replace(/[$,%s"]/g,'')) || 0;
+return parseFloat((s||'').replace(/[\$,%\s"]/g,'')) || 0;
 }
 
 function loadData(){
