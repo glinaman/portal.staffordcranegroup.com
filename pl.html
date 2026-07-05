@@ -89,8 +89,7 @@ function parseNum(s){return parseFloat((s||'').replace(/[$,%s"]/g,''))||0;}
 function parseCSVLine(line){var cols=[],cur='',inQ=false;for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}cols.push(cur.trim());return cols;}
 function loadData(){
 fetch(SHEET_CSV).then(function(r){return r.text();}).then(function(text){
-var lines=text.trim().split('
-');
+var lines=text.trim().split('\n');
 var headers=[],revRow=[],ebitdaRow=[],netRow=[],cfRow=[],ebitdaPctRow=[],netPctRow=[];
 for(var i=0;i<lines.length;i++){
 var cols=parseCSVLine(lines[i]);
