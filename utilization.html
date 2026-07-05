@@ -28,7 +28,9 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ct{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .chart-wrap{height:200px;position:relative;}
 .chart-wrap-lg{height:260px;position:relative;}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;margin-bottom:8px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+.section-label span{flex:1;height:1px;background:var(--border);}
 .kpi{background:var(--navy-card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
 .kpi.highlight{border-color:rgba(232,119,34,0.4);}
 .kpi-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
@@ -57,6 +59,7 @@ body{display:flex;flex-direction:column;min-height:100vh;}
   </div>
   <div id="util-loading">LOADING DATA...</div>
   <div id="util-content" style="display:none">
+    <div class="section-label">Current <span></span><span id="current-date" style="flex:0;letter-spacing:1px;white-space:nowrap;"></span></div>
     <div class="kpi-grid" id="kpi-row"></div>
     <div class="slabel">TOWER CRANE &mdash; UNITS IN AIR</div>
     <div class="mc mb12">
@@ -143,9 +146,8 @@ async function loadData(){
     var nxtTC=futTC[0],nxtHoist=futHoist[0];
     document.getElementById('kpi-row').innerHTML=
       '<div class="kpi highlight"><div class="kpi-label">TC In Air (Jun \'26)</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
-      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun \'26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>'+
-      '<div class="kpi"><div class="kpi-label">Combined (Jun \'26)</div><div class="kpi-val">'+curComb+'</div><div class="kpi-pct">'+pct(curComb,combFleet)+'% utilization</div><div class="kpi-sub">of '+combFleet+' total fleet</div></div>'+
-      '<div class="kpi"><div class="kpi-label">Forward: Jul \'26 Fcst</div><div class="kpi-val">'+(nxtTC+nxtHoist)+'</div><div class="kpi-pct">TC: '+nxtTC+' &nbsp;|&nbsp; Hoist: '+nxtHoist+'</div><div class="kpi-sub">'+pct(nxtTC+nxtHoist,combFleet)+'% projected</div></div>';
+      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun \'26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>';
+    document.getElementById('current-date').textContent='Jun \'26';
 
     function trendOpts(){
       return {responsive:true,maintainAspectRatio:false,
@@ -168,11 +170,30 @@ async function loadData(){
 
     function mkMarketChart(containerId,states,rowNums,colors){
       var grid=document.getElementById(containerId);
+      var rolls=[],futs=[],maxes=[];
       states.forEach(function(state,si){
-        var roll=getVals(rowNums[si],ROLL_START,12);
-        var fut=getVals(rowNums[si],FUT_START,12);
-        var maxV=Math.max.apply(null,roll.concat(fut));
-        if(maxV===0)return;
+        var rn=rowNums[si];
+        var roll,fut;
+        if(Array.isArray(rn)){
+          roll=getVals(rn[0],ROLL_START,12);
+          fut=getVals(rn[0],FUT_START,12);
+          for(var k=1;k<rn.length;k++){
+            var r2=getVals(rn[k],ROLL_START,12);
+            var f2=getVals(rn[k],FUT_START,12);
+            roll=roll.map(function(v,i){return v+r2[i];});
+            fut=fut.map(function(v,i){return v+f2[i];});
+          }
+        }else{
+          roll=getVals(rn,ROLL_START,12);
+          fut=getVals(rn,FUT_START,12);
+        }
+        rolls.push(roll);futs.push(fut);
+        maxes.push(Math.max.apply(null,roll.concat(fut)));
+      });
+      var sharedMax=Math.ceil(Math.max.apply(null,maxes)/5)*5;
+      states.forEach(function(state,si){
+        var roll=rolls[si],fut=futs[si];
+        if(maxes[si]===0)return;
         var card=document.createElement('div');
         card.className='mc';
         card.innerHTML='<div class="ct"><i class="ti ti-map-pin"></i> '+state+'</div><div class="chart-wrap"><canvas id="mkt-'+containerId+'-'+state+'"></canvas></div>';
@@ -183,7 +204,7 @@ async function loadData(){
           Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([roll[11]]).concat(fut),borderColor:col,pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[4,3],borderWidth:1.5,pointRadius:2})
         ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
           scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
-            y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0}}}});
+            y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0,max:sharedMax}}}});
       });
     }
     // Combined TC + Hoist trend chart
@@ -195,8 +216,8 @@ async function loadData(){
       Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([rollComb[11]]).concat(futComb),borderColor:'#2ecc71',pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[5,4],borderWidth:1.5})
     ]},options:trendOpts()});
 
-        mkMarketChart('tc-market-grid',['AZ','CA','CO','NM','OK','TX'],[4,5,6,8,9,10],['#e87722','#2ecc71','#3498db','#9b59b6','#e74c3c','#f1c40f']);
-    mkMarketChart('hoist-market-grid',['AZ','CA','CO','IA','TX'],[16,17,18,19,22],['#e87722','#2ecc71','#3498db','#9b59b6','#f1c40f']);
+        mkMarketChart('tc-market-grid',['AZ','CA','CO','Other'],[4,5,6,[8,9,10]],['#e87722','#2ecc71','#3498db','#9b59b6']);
+    mkMarketChart('hoist-market-grid',['AZ','CA','CO','Other'],[16,17,18,[19,22]],['#e87722','#2ecc71','#3498db','#9b59b6']);
 
     document.getElementById('as-of').textContent='As of Jun 2026';
     document.getElementById('util-loading').style.display='none';
