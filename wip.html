@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1b2e">
-<script data-memberstack-app="app_cmq5rvng1000s0svo5jh34fs0" src="https://static.memberstack.com/scripts/v2/memberstack.js" type="text/javascript"></script>
 <title>Backlog / WIP — SCG Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -43,10 +42,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 .ct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
 .ct i{color:var(--orange);font-size:15px;}
 .chart-wrap{position:relative;height:260px;}
-.locked{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-muted);}
-.locked i{font-size:40px;color:var(--text-dim);margin-bottom:14px;}
-.locked h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;color:var(--text-muted);}
-.locked p{font-size:11px;max-width:230px;}
 #wip-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 </style>
 </head>
@@ -82,11 +77,6 @@ body{display:flex;flex-direction:column;min-height:100vh;}
 <div class="chart-wrap"><canvas id="chart-line"></canvas></div>
 </div>
 </div>
-<div id="wip-locked" class="locked" style="display:none;">
-<i class="ti ti-lock"></i>
-<h3>Executive Access Only</h3>
-<p>This section is restricted to Admin and Executive members.</p>
-</div>
 </div>
 <script>
 var SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRheWj8_iCcO26VDyuHtvr0Oap-ilvPVr9nlskArSj9uPCzVmofn-i1Lw0lRezDC8eHemBwdcuGKF_3/pub?gid=1625713028&single=true&output=csv';
@@ -95,120 +85,93 @@ function fmtM(n){ return '$'+(n/1e6).toFixed(1)+'M'; }
 function fmtPct(n){ return n.toFixed(1)+'%'; }
 
 function parseCSV(text){
-  var lines = text.trim().split('\n');
-  var dataRows = [];
-  for(var i=0;i<lines.length;i++){
-    var line = lines[i];
-    var cols = [];
-    var cur = '';
-    var inQ = false;
-    for(var j=0;j<line.length;j++){
-      var ch = line[j];
-      if(ch==='"'){ inQ=!inQ; }
-      else if(ch===','&&!inQ){ cols.push(cur.trim()); cur=''; }
-      else { cur+=ch; }
-    }
-    cols.push(cur.trim());
-    var raw = cols[0].replace(/[\$\s]/g,'');
-    if(raw.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/) || raw.match(/^\d{1,2}\/\d{2,4}$/)){
-      dataRows.push(cols);
-    }
-  }
-  return dataRows;
+var lines = text.trim().split('
+');
+var dataRows = [];
+for(var i=0;i<lines.length;i++){
+var line = lines[i];
+var cols = [];
+var cur = '';
+var inQ = false;
+for(var j=0;j<line.length;j++){
+var ch = line[j];
+if(ch==='"'){ inQ=!inQ; }
+else if(ch===','&&!inQ){ cols.push(cur.trim()); cur=''; }
+else { cur+=ch; }
+}
+cols.push(cur.trim());
+var raw = cols[0].replace(/[$s]/g,'');
+if(raw.match(/^d{1,2}/d{1,2}/d{2,4}$/) || raw.match(/^d{1,2}/d{2,4}$/)){
+dataRows.push(cols);
+}
+}
+return dataRows;
 }
 
 function fmtLabel(dateStr){
-  var clean = dateStr.replace(/[\$\s"]/g,'').trim();
-  var parts = clean.split('/');
-  if(parts.length < 2) return clean;
-  var month = parseInt(parts[0])-1;
-  var year = parts.length===3 ? 2000+parseInt(parts[2]) : 2000+parseInt(parts[1]);
-  var d = new Date(year, month, 1);
-  return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+var clean = dateStr.replace(/[$s"]/g,'').trim();
+var parts = clean.split('/');
+if(parts.length < 2) return clean;
+var month = parseInt(parts[0])-1;
+var year = parts.length===3 ? 2000+parseInt(parts[2]) : 2000+parseInt(parts[1]);
+var d = new Date(year, month, 1);
+return d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
 }
 
 function parseNum(s){
-  return parseFloat((s||'').replace(/[\$,%\s"]/g,'')) || 0;
+return parseFloat((s||'').replace(/[$,%s"]/g,'')) || 0;
 }
 
 function loadData(){
-  fetch(SHEET_CSV).then(function(r){ return r.text(); }).then(function(text){
-    var rows = parseCSV(text);
-    if(!rows.length){ throw new Error('no data'); }
-    var months = rows.map(function(r){ return fmtLabel(r[0]); });
-    var contracts = rows.map(function(r){ return parseNum(r[1]); });
-    var billed = rows.map(function(r){ return parseNum(r[2]); });
-    var remaining = rows.map(function(r){ return parseNum(r[3]); });
-    var pct = rows.map(function(r){ return parseNum(r[4]); });
-    var last = rows.length-1;
-    document.getElementById('kpi-contract').textContent = fmtM(contracts[last]);
-    document.getElementById('kpi-billed').textContent = fmtM(billed[last]);
-    document.getElementById('kpi-remaining').textContent = fmtM(remaining[last]);
-    document.getElementById('kpi-contract-sub').textContent = 'Total contracted work';
-    document.getElementById('kpi-billed-sub').textContent = fmtPct(pct[last])+' complete';
-    document.getElementById('kpi-remaining-sub').textContent = 'As of '+months[last];
-    document.getElementById('as-of').textContent = 'Data as of '+months[last];
+fetch(SHEET_CSV).then(function(r){ return r.text(); }).then(function(text){
+var rows = parseCSV(text);
+if(!rows.length){ throw new Error('no data'); }
+var months = rows.map(function(r){ return fmtLabel(r[0]); });
+var contracts = rows.map(function(r){ return parseNum(r[1]); });
+var billed = rows.map(function(r){ return parseNum(r[2]); });
+var remaining = rows.map(function(r){ return parseNum(r[3]); });
+var pct = rows.map(function(r){ return parseNum(r[4]); });
+var last = rows.length-1;
+document.getElementById('kpi-contract').textContent = fmtM(contracts[last]);
+document.getElementById('kpi-billed').textContent = fmtM(billed[last]);
+document.getElementById('kpi-remaining').textContent = fmtM(remaining[last]);
+document.getElementById('kpi-contract-sub').textContent = 'Total contracted work';
+document.getElementById('kpi-billed-sub').textContent = fmtPct(pct[last])+' complete';
+document.getElementById('kpi-remaining-sub').textContent = 'As of '+months[last];
+document.getElementById('as-of').textContent = 'Data as of '+months[last];
 var cdEl = document.getElementById('current-date');
 if(cdEl) cdEl.textContent = months[last];
-    var scaleX = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.05)'}};
-    var scaleYdollar = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:function(v){ return '$'+(v/1e6).toFixed(0)+'M'; }},grid:{color:'rgba(255,255,255,0.05)'}};
-    var legend = {labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
-    new Chart(document.getElementById('chart-stacked'),{
-      type:'bar',
-      data:{labels:months,datasets:[
-        {label:'Billed to Date',data:billed,backgroundColor:'#e87722',borderRadius:3},
-        {label:'Remaining',data:remaining,backgroundColor:'#3498db',borderRadius:3}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},
-        scales:{x:Object.assign({stacked:true},scaleX),y:Object.assign({stacked:true},scaleYdollar)}}
-    });
-    new Chart(document.getElementById('chart-line'),{
-      type:'line',
-      data:{labels:months,datasets:[{
-        label:'Remaining to Bill',data:remaining,
-        borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',
-        pointBackgroundColor:'#e87722',tension:0.3,fill:true
-      }]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},
-        scales:{x:scaleX,y:scaleYdollar}}
-    });
-  }).catch(function(e){
-    console.error('WIP load error:',e);
-    document.getElementById('as-of').textContent='Data unavailable';
-  });
+var scaleX = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11}},grid:{color:'rgba(255,255,255,0.05)'}};
+var scaleYdollar = {ticks:{color:'#8ea3bc',font:{family:'Barlow',size:11},callback:function(v){ return '$'+(v/1e6).toFixed(0)+'M'; }},grid:{color:'rgba(255,255,255,0.05)'}};
+var legend = {labels:{color:'#8ea3bc',font:{family:'Barlow',size:11}}};
+new Chart(document.getElementById('chart-stacked'),{
+type:'bar',
+data:{labels:months,datasets:[
+{label:'Billed to Date',data:billed,backgroundColor:'#e87722',borderRadius:3},
+{label:'Remaining',data:remaining,backgroundColor:'#3498db',borderRadius:3}
+]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},
+scales:{x:Object.assign({stacked:true},scaleX),y:Object.assign({stacked:true},scaleYdollar)}}
+});
+new Chart(document.getElementById('chart-line'),{
+type:'line',
+data:{labels:months,datasets:[{
+label:'Remaining to Bill',data:remaining,
+borderColor:'#e87722',backgroundColor:'rgba(232,119,34,0.08)',
+pointBackgroundColor:'#e87722',tension:0.3,fill:true
+}]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:legend},
+scales:{x:scaleX,y:scaleYdollar}}
+});
+}).catch(function(e){
+console.error('WIP load error:',e);
+document.getElementById('as-of').textContent='Data unavailable';
+});
 }
 
-function showWip(role){
-  document.getElementById('wip-loading').style.display='none';
-  document.getElementById('tb-role').textContent=role==='admin'?'Admin':role==='exec'?'Executive':'Employee';
-  if(role==='admin'||role==='exec'){
-    document.getElementById('wip-content').style.display='block';
-    document.getElementById('wip-locked').style.display='none';
-    loadData();
-  } else {
-    document.getElementById('wip-content').style.display='none';
-    document.getElementById('wip-locked').style.display='flex';
-  }
-}
-
-function checkMember(){
-  if(window.$memberstackDom){
-    window.$memberstackDom.getCurrentMember().then(function(result){
-      var member=result.data;
-      if(!member){window.location.href='index.html';return;}
-      var role='employee';
-      if(member.planConnections&&member.planConnections.length>0){
-        var planId=(member.planConnections[0].planId||'').toLowerCase();
-        if(planId.includes('admin')) role='admin';
-        else if(planId.includes('exec')) role='exec';
-      }
-      showWip(role);
-    });
-  } else {
-    setTimeout(checkMember,100);
-  }
-}
-checkMember();
+document.getElementById('wip-loading').style.display='none';
+document.getElementById('wip-content').style.display='block';
+loadData();
 </script>
 </body>
 </html>
