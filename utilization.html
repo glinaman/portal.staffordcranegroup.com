@@ -88,143 +88,183 @@ var TC_FLEET=76,HOIST_FLEET=68;
 function pf(s){return parseFloat((s||'').replace(/[^0-9.-]/g,''))||0;}
 function pct(n,f){return Math.round(n/f*100);}
 function parseCSVLine(line){
-  const cells=[];let cur='',inQ=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(c==='"'){inQ=!inQ;}
-    else if(c===','&&!inQ){cells.push(cur);cur='';}
-    else{cur+=c;}
-  }
-  cells.push(cur);
-  return cells;
+const cells=[];let cur='',inQ=false;
+for(let i=0;i<line.length;i++){
+const c=line[i];
+if(c==='"'){inQ=!inQ;}
+else if(c===','&&!inQ){cells.push(cur);cur='';}
+else{cur+=c;}
+}
+cells.push(cur);
+return cells;
 }
 function parseCSV(txt){
-  const rows=[];let cur='',inQ=false;
-  for(let i=0;i<txt.length;i++){
-    const c=txt[i];
-    if(c==='"'){inQ=!inQ;}
-    else if((c==='\n'||c==='\r')&&!inQ){
-      if(cur)rows.push(parseCSVLine(cur));
-      cur='';
-    }else{cur+=c;}
-  }
-  if(cur)rows.push(parseCSVLine(cur));
-  return rows;
+const rows=[];let cur='',inQ=false;
+for(let i=0;i<txt.length;i++){
+const c=txt[i];
+if(c==='"'){inQ=!inQ;}
+else if((c==='\n'||c==='\r')&&!inQ){
+if(cur)rows.push(parseCSVLine(cur));
+cur='';
+}else{cur+=c;}
+}
+if(cur)rows.push(parseCSVLine(cur));
+return rows;
 }
 var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var ROLL_START=68,FUT_START=80;
+// Sheet layout: column index 2 (0-based, i.e. column C) holds Jan 2020, with 12 sequential
+// columns per calendar year after that. Derive the "current" column from today's real date
+// instead of a hardcoded month so this view never goes stale.
+var SHEET_BASE_YEAR=2020,SHEET_START_COL=2;
+var _now=new Date();
+var CUR_YEAR=_now.getFullYear(),CUR_MONTH=_now.getMonth();
+function colForDate(y,m){return SHEET_START_COL+(y-SHEET_BASE_YEAR)*12+m;}
+function labelForOffset(offset){
+var total=CUR_YEAR*12+CUR_MONTH+offset;
+var y=Math.floor(total/12),m=((total%12)+12)%12;
+return MO[m]+"'"+String(y%100).padStart(2,'0');
+}
+var CUR_COL=colForDate(CUR_YEAR,CUR_MONTH);
+var CUR_LABEL=labelForOffset(0);
+var ROLL_START=CUR_COL-11,FUT_START=CUR_COL+1;
 var gridColor='rgba(255,255,255,0.06)';
 var tickOpts={color:'#8ea3bc',font:{family:'Barlow',size:9}};
 var baseLine={borderWidth:2,pointRadius:3,pointHoverRadius:5,tension:0.35,fill:false};
 
 async function loadData(){
-  try{
-    var resp=await fetch(SHEET_CSV+'&t='+Date.now());
-    var text=await resp.text();
-    if(window._memberstack&&window._memberstack.getCurrentMember){
-      window._memberstack.getCurrentMember().then(function(r){
-        var m=r&&r.data;
-        if(m&&m.auth)document.getElementById('tb-role').textContent=m.auth.email||'';
-      });
+try{
+var resp=await fetch(SHEET_CSV+'&t='+Date.now());
+var text=await resp.text();
+if(window._memberstack&&window._memberstack.getCurrentMember){
+window._memberstack.getCurrentMember().then(function(r){
+var m=r&&r.data;
+if(m&&m.auth)document.getElementById('tb-role').textContent=m.auth.email||'';
+});
+}
+var rows=parseCSV(text);
+// Resolve each equipment section by labels; CSV exports can omit blank/header rows.
+function sectionRows(heading){
+  var start=rows.findIndex(function(r){return (r[0]||'').trim()===heading;});
+  if(start<0)throw new Error('Missing utilization section: '+heading);
+  var result={markets:{},other:[]};
+  for(var i=start+1;i<rows.length;i++){
+    var label=(rows[i][0]||'').trim();
+    if(label==='Total'){result.total=i;return result;}
+    if(/^[A-Z]{2}$/.test(label)){
+      result.markets[label]=i;
+      if(['AZ','CA','CO'].indexOf(label)<0)result.other.push(i);
     }
-    var rows=parseCSV(text);
-    function getVals(rowIdx,start,count){
-      var r=rows[rowIdx]||[];
-      var out=[];
-      for(var i=0;i<count;i++)out.push(pf(r[start+i]));
-      return out;
-    }
-    var rollLabels=MO.slice(6).map(function(m){return m+"'25";}).concat(MO.slice(0,6).map(function(m){return m+"'26";}));
-    var futLabels=MO.slice(6).map(function(m){return m+"'26";}).concat(MO.slice(0,6).map(function(m){return m+"'27";}));
-    var allLabels=rollLabels.concat(futLabels);
-    var rollTC=getVals(13,ROLL_START,12);
-    var rollHoist=getVals(25,ROLL_START,12);
-    var futTC=getVals(13,FUT_START,12);
-    var futHoist=getVals(25,FUT_START,12);
-    var curTC=rollTC[11],curHoist=rollHoist[11];
-    var curComb=curTC+curHoist,combFleet=TC_FLEET+HOIST_FLEET;
-    var nxtTC=futTC[0],nxtHoist=futHoist[0];
-    document.getElementById('kpi-row').innerHTML=
-      '<div class="kpi highlight"><div class="kpi-label">TC In Air (Jun \'26)</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
-      '<div class="kpi highlight"><div class="kpi-label">Hoists In Air (Jun \'26)</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>';
-    document.getElementById('current-date').textContent='Jun \'26';
-
-    function trendOpts(){
-      return {responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:10},boxWidth:12,padding:12}},
-          tooltip:{mode:'index',intersect:false}},
-        scales:{
-          x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
-          y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:gridColor},min:0}
-        }};
-    }
-    var nullArr12=new Array(12).fill(null);
-    new Chart(document.getElementById('chart-tc-trend'),{type:'line',data:{labels:allLabels,datasets:[
-      Object.assign({},baseLine,{label:'TC In Air (Actual)',data:rollTC.concat(nullArr12),borderColor:'#e87722',pointBackgroundColor:'#e87722'}),
-      Object.assign({},baseLine,{label:'TC In Air (Forecast)',data:new Array(11).fill(null).concat([rollTC[11]]).concat(futTC),borderColor:'rgba(232,119,34,0.6)',pointBackgroundColor:'rgba(232,119,34,0.3)',borderDash:[5,4],borderWidth:1.5})
-    ]},options:trendOpts()});
-    new Chart(document.getElementById('chart-hoist-trend'),{type:'line',data:{labels:allLabels,datasets:[
-      Object.assign({},baseLine,{label:'Hoists In Air (Actual)',data:rollHoist.concat(nullArr12),borderColor:'#3498db',pointBackgroundColor:'#3498db'}),
-      Object.assign({},baseLine,{label:'Hoists In Air (Forecast)',data:new Array(11).fill(null).concat([rollHoist[11]]).concat(futHoist),borderColor:'rgba(52,152,219,0.6)',pointBackgroundColor:'rgba(52,152,219,0.3)',borderDash:[5,4],borderWidth:1.5})
-    ]},options:trendOpts()});
-
-    function mkMarketChart(containerId,states,rowNums,colors){
-      var grid=document.getElementById(containerId);
-      var rolls=[],futs=[],maxes=[];
-      states.forEach(function(state,si){
-        var rn=rowNums[si];
-        var roll,fut;
-        if(Array.isArray(rn)){
-          roll=getVals(rn[0],ROLL_START,12);
-          fut=getVals(rn[0],FUT_START,12);
-          for(var k=1;k<rn.length;k++){
-            var r2=getVals(rn[k],ROLL_START,12);
-            var f2=getVals(rn[k],FUT_START,12);
-            roll=roll.map(function(v,i){return v+r2[i];});
-            fut=fut.map(function(v,i){return v+f2[i];});
-          }
-        }else{
-          roll=getVals(rn,ROLL_START,12);
-          fut=getVals(rn,FUT_START,12);
-        }
-        rolls.push(roll);futs.push(fut);
-        maxes.push(Math.max.apply(null,roll.concat(fut)));
-      });
-      var sharedMax=Math.ceil(Math.max.apply(null,maxes)/5)*5;
-      states.forEach(function(state,si){
-        var roll=rolls[si],fut=futs[si];
-        if(maxes[si]===0)return;
-        var card=document.createElement('div');
-        card.className='mc';
-        card.innerHTML='<div class="ct"><i class="ti ti-map-pin"></i> '+state+'</div><div class="chart-wrap"><canvas id="mkt-'+containerId+'-'+state+'"></canvas></div>';
-        grid.appendChild(card);
-        var col=colors[si];
-        new Chart(document.getElementById('mkt-'+containerId+'-'+state),{type:'line',data:{labels:allLabels,datasets:[
-          Object.assign({},baseLine,{label:'Actual',data:roll.concat(nullArr12),borderColor:col,pointBackgroundColor:col,pointRadius:2}),
-          Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([roll[11]]).concat(fut),borderColor:col,pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[4,3],borderWidth:1.5,pointRadius:2})
-        ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
-          scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
-            y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0,max:sharedMax}}}});
-      });
-    }
-    // Combined TC + Hoist trend chart
-    var rollComb=rollTC.map(function(v,i){return v+(rollHoist[i]||0);});
-    var futComb=futTC.map(function(v,i){return v+(futHoist[i]||0);});
-    var nullArr12b=new Array(12).fill(null);
-    new Chart(document.getElementById('chart-combined-trend'),{type:'line',data:{labels:allLabels,datasets:[
-      Object.assign({},baseLine,{label:'Combined In Air (Actual)',data:rollComb.concat(nullArr12b),borderColor:'#2ecc71',pointBackgroundColor:'#2ecc71',pointRadius:2}),
-      Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([rollComb[11]]).concat(futComb),borderColor:'#2ecc71',pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[5,4],borderWidth:1.5})
-    ]},options:trendOpts()});
-
-        mkMarketChart('tc-market-grid',['AZ','CA','CO','Other'],[4,5,6,[8,9,10]],['#e87722','#2ecc71','#3498db','#9b59b6']);
-    mkMarketChart('hoist-market-grid',['AZ','CA','CO','Other'],[16,17,18,[19,22]],['#e87722','#2ecc71','#3498db','#9b59b6']);
-
-    document.getElementById('as-of').textContent='As of Jun 2026';
-    document.getElementById('util-loading').style.display='none';
-    document.getElementById('util-content').style.display='';
-  }catch(e){
-    document.getElementById('util-loading').textContent='Error: '+e.message;
   }
+  throw new Error('Missing total for '+heading);
+}
+var tcRows=sectionRows('TC - Actual / Committed Projects');
+var hoistRows=sectionRows('Hoists - Actual / Committed Projects');
+function marketRows(section){
+  return ['AZ','CA','CO'].map(function(state){
+    if(section.markets[state]===undefined)throw new Error('Missing utilization market: '+state);
+    return section.markets[state];
+  }).concat([section.other]);
+}
+
+function getVals(rowIdx,start,count){
+var r=rows[rowIdx]||[];
+var out=[];
+for(var i=0;i<count;i++)out.push(pf(r[start+i]));
+return out;
+}
+var rollLabels=[];
+for(var _i=-11;_i<=0;_i++)rollLabels.push(labelForOffset(_i));
+var futLabels=[];
+for(var _i=1;_i<=12;_i++)futLabels.push(labelForOffset(_i));
+var allLabels=rollLabels.concat(futLabels);
+var rollTC=getVals(tcRows.total,ROLL_START,12);
+var rollHoist=getVals(hoistRows.total,ROLL_START,12);
+var futTC=getVals(tcRows.total,FUT_START,12);
+var futHoist=getVals(hoistRows.total,FUT_START,12);
+var curTC=rollTC[11],curHoist=rollHoist[11];
+var curComb=curTC+curHoist,combFleet=TC_FLEET+HOIST_FLEET;
+var nxtTC=futTC[0],nxtHoist=futHoist[0];
+document.getElementById('kpi-row').innerHTML=
+'<div class="kpi highlight"><div class="kpi-label">TC In Air ('+CUR_LABEL+')</div><div class="kpi-val">'+curTC+'</div><div class="kpi-pct">'+pct(curTC,TC_FLEET)+'% utilization</div><div class="kpi-sub">of '+TC_FLEET+' fleet</div></div>'+
+'<div class="kpi highlight"><div class="kpi-label">Hoists In Air ('+CUR_LABEL+')</div><div class="kpi-val">'+curHoist+'</div><div class="kpi-pct">'+pct(curHoist,HOIST_FLEET)+'% utilization</div><div class="kpi-sub">of '+HOIST_FLEET+' fleet</div></div>';
+document.getElementById('current-date').textContent=CUR_LABEL;
+
+function trendOpts(){
+return {responsive:true,maintainAspectRatio:false,
+plugins:{legend:{display:true,labels:{color:'#8ea3bc',font:{family:'Barlow',size:10},boxWidth:12,padding:12}},
+tooltip:{mode:'index',intersect:false}},
+scales:{
+x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
+y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:10},stepSize:1},grid:{color:gridColor},min:0,grace:'10%'}
+}};
+}
+var nullArr12=new Array(12).fill(null);
+new Chart(document.getElementById('chart-tc-trend'),{type:'line',data:{labels:allLabels,datasets:[
+Object.assign({},baseLine,{label:'TC In Air (Actual)',data:rollTC.concat(nullArr12),borderColor:'#e87722',pointBackgroundColor:'#e87722'}),
+Object.assign({},baseLine,{label:'TC In Air (Forecast)',data:new Array(11).fill(null).concat([rollTC[11]]).concat(futTC),borderColor:'rgba(232,119,34,0.6)',pointBackgroundColor:'rgba(232,119,34,0.3)',borderDash:[5,4],borderWidth:1.5})
+]},options:trendOpts()});
+new Chart(document.getElementById('chart-hoist-trend'),{type:'line',data:{labels:allLabels,datasets:[
+Object.assign({},baseLine,{label:'Hoists In Air (Actual)',data:rollHoist.concat(nullArr12),borderColor:'#3498db',pointBackgroundColor:'#3498db'}),
+Object.assign({},baseLine,{label:'Hoists In Air (Forecast)',data:new Array(11).fill(null).concat([rollHoist[11]]).concat(futHoist),borderColor:'rgba(52,152,219,0.6)',pointBackgroundColor:'rgba(52,152,219,0.3)',borderDash:[5,4],borderWidth:1.5})
+]},options:trendOpts()});
+
+function mkMarketChart(containerId,states,rowNums,colors){
+var grid=document.getElementById(containerId);
+var rolls=[],futs=[],maxes=[];
+states.forEach(function(state,si){
+var rn=rowNums[si];
+var roll,fut;
+if(Array.isArray(rn)){
+roll=rn.length?getVals(rn[0],ROLL_START,12):new Array(12).fill(0);
+fut=rn.length?getVals(rn[0],FUT_START,12):new Array(12).fill(0);
+for(var k=1;k<rn.length;k++){
+var r2=getVals(rn[k],ROLL_START,12);
+var f2=getVals(rn[k],FUT_START,12);
+roll=roll.map(function(v,i){return v+r2[i];});
+fut=fut.map(function(v,i){return v+f2[i];});
+}
+}else{
+roll=getVals(rn,ROLL_START,12);
+fut=getVals(rn,FUT_START,12);
+}
+rolls.push(roll);futs.push(fut);
+maxes.push(Math.max.apply(null,roll.concat(fut)));
+});
+var sharedMax=Math.ceil(Math.max.apply(null,maxes)/5)*5;
+states.forEach(function(state,si){
+var roll=rolls[si],fut=futs[si];
+if(maxes[si]===0)return;
+var card=document.createElement('div');
+card.className='mc';
+card.innerHTML='<div class="ct"><i class="ti ti-map-pin"></i> '+state+'</div><div class="chart-wrap"><canvas id="mkt-'+containerId+'-'+state+'"></canvas></div>';
+grid.appendChild(card);
+var col=colors[si];
+new Chart(document.getElementById('mkt-'+containerId+'-'+state),{type:'line',data:{labels:allLabels,datasets:[
+Object.assign({},baseLine,{label:'Actual',data:roll.concat(nullArr12),borderColor:col,pointBackgroundColor:col,pointRadius:2}),
+Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([roll[11]]).concat(fut),borderColor:col,pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[4,3],borderWidth:1.5,pointRadius:2})
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+scales:{x:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},maxRotation:45,minRotation:45},grid:{color:gridColor}},
+y:{ticks:{color:'#8ea3bc',font:{family:'Barlow',size:9},stepSize:1},grid:{color:gridColor},min:0,max:sharedMax}}}});
+});
+}
+// Combined TC + Hoist trend chart
+var rollComb=rollTC.map(function(v,i){return v+(rollHoist[i]||0);});
+var futComb=futTC.map(function(v,i){return v+(futHoist[i]||0);});
+var nullArr12b=new Array(12).fill(null);
+new Chart(document.getElementById('chart-combined-trend'),{type:'line',data:{labels:allLabels,datasets:[
+Object.assign({},baseLine,{label:'Combined In Air (Actual)',data:rollComb.concat(nullArr12b),borderColor:'#2ecc71',pointBackgroundColor:'#2ecc71',pointRadius:2}),
+Object.assign({},baseLine,{label:'Forecast',data:new Array(11).fill(null).concat([rollComb[11]]).concat(futComb),borderColor:'#2ecc71',pointBackgroundColor:'rgba(0,0,0,0.2)',borderDash:[5,4],borderWidth:1.5})
+]},options:trendOpts()});
+
+mkMarketChart('tc-market-grid',['AZ','CA','CO','Other'],marketRows(tcRows),['#e87722','#2ecc71','#3498db','#9b59b6']);
+mkMarketChart('hoist-market-grid',['AZ','CA','CO','Other'],marketRows(hoistRows),['#e87722','#2ecc71','#3498db','#9b59b6']);
+
+document.getElementById('as-of').textContent='As of '+MO[CUR_MONTH]+' '+CUR_YEAR;
+document.getElementById('util-loading').style.display='none';
+document.getElementById('util-content').style.display='';
+}catch(e){
+document.getElementById('util-loading').textContent='Error: '+e.message;
+}
 }
 loadData();
 </script>
