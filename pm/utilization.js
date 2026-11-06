@@ -44,19 +44,34 @@ async function readUtilization(token) {
   const url = new URL('https://sheets.googleapis.com/v4/spreadsheets/'+utilizationId);
   url.searchParams.set('ranges',"'Master List'!A5:M");
   url.searchParams.set('fields','sheets(properties(title),data(rowData(values(formattedValue,effectiveValue,effectiveFormat(backgroundColor)))))');
-  const response = await fetch(url,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  const response = await fetch(url,{headers:{Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(30000)});
   if(!response.ok) throw Error('Google Sheets returned '+response.status+'. Check workbook access and the Sheets API configuration.');
   return parseUtilization(await response.json());
 }
 
-function requestAccess() {
-  return new Promise((resolve,reject)=>{
-    if (!googleClientId) return reject(Error('Configure the portal Google OAuth client ID before connecting.'));
-    if (!window.google?.accounts?.oauth2) return reject(Error('Google sign-in did not load. Reload and try again.'));
-    google.accounts.oauth2.initTokenClient({
-      client_id:googleClientId,scope:'https://www.googleapis.com/auth/spreadsheets.readonly',
-      callback:r=>r.access_token?resolve(r.access_token):reject(Error('Google did not grant access.')),
-      error_callback:()=>reject(Error('Google sign-in was closed or blocked.'))
-    }).requestAccessToken();
-  });
+async function requestAccess() {
+  const oauth = window.google?.accounts?.oauth2;
+  if (!oauth) throw Error('Google sign-in did not load. Reload the pilot and try again.');
+  if (navigator.userActivation && !navigator.userActivation.isActive) {
+    throw Error('Click Try again yourself in the pilot tab to open the Google account chooser.');
+  }
+  let timer;
+  try {
+    return await new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(Error('Google sign-in did not finish within 90 seconds. Check for a Google window or a blocked popup, then try again.')), 90000);
+      const client = oauth.initTokenClient({
+        client_id: googleClientId,
+        scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+        prompt: 'select_account',
+        callback: result => {
+          if (result.access_token) resolve(result.access_token);
+          else reject(Error('Google sign-in returned ' + (result.error || 'no access token') + '.'));
+        },
+        error_callback: error => reject(Error('Google sign-in could not finish (' + (error.type || 'unknown error') + '). Check for a blocked popup and try again.'))
+      });
+      client.requestAccessToken();
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 }
