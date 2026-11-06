@@ -46,10 +46,13 @@ async function showRefresh() {
   reading=true;
   pending=[];
   try {
-    const authorization=requestAccess();
-    showPanel('Manual refresh','<p>Waiting for Google Sheets…</p>');
-    const result=await readUtilization(await authorization);
-    if (!document.querySelector('#app h1')?.textContent.includes('Manual refresh')) return;
+    const panel = () => document.querySelector('#app h1')?.textContent === 'Manual refresh';
+    showPanel('Manual refresh','<p>Waiting for Google sign-in. Choose your Stafford Google account in the popup.</p>');
+    const token = await requestAccess();
+    if (!panel()) return;
+    showPanel('Manual refresh','<p>Signed in to Google. Reading the Utilization Master List…</p>');
+    const result = await readUtilization(token);
+    if (!panel()) return;
     const incoming=new Set(result.projects.map(p=>p.id));
     const lines=[];
     for(const source of result.projects){
@@ -62,7 +65,12 @@ async function showRefresh() {
     for(const p of activeProjects().filter(p=>!incoming.has(p.id))) lines.push('<div class="item">Review missing project: '+esc(p.id+' · '+p.name)+'</div>');
     for(const issue of result.issues) lines.push('<div class="item">Review unmatched assignment: '+esc(issue)+'</div>');
     showPanel('Manual refresh preview','<p>'+result.projects.length+' qualifying projects · '+pending.length+' proposed changes</p><div class="card">'+lines.join('')+'</div>'+(pending.length?'<button data-roster="apply">Apply changes</button>':''));
-  } catch(error){showPanel('Manual refresh','<p>'+esc(error.message)+'</p>');}
+  } catch (error) {
+    if (document.querySelector('#app h1')?.textContent === 'Manual refresh') {
+      const message = error.name === 'TimeoutError' ? 'Google Sheets did not respond within 30 seconds.' : error.message;
+      showPanel('Manual refresh', '<p>' + esc(message) + '</p><button data-roster="preview">Try again</button>');
+    }
+  }
   finally{reading=false;}
 }
 document.addEventListener('click', event => {
