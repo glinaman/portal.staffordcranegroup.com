@@ -1,5 +1,4 @@
-// Set to the portal's Google Web OAuth client ID before account testing.
-const googleClientId = '';
+const googleClientId = '804536967114-spfb410n04lmasclld1gbe4loq5aq0sn.apps.googleusercontent.com';
 const utilizationId = '1hLTZTMbTX9g4ZWYee4QJwmlAj1lfbiaKi8CZziPEWGY';
 const cellValue = cell => (cell?.formattedValue || '').trim();
 
