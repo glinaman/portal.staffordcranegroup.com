@@ -37,6 +37,18 @@ function showPanel(title, body) {
 }
 const eventLogId = '10JC-bLNOb3u2vh1hRu4oWTow50eVFN_fRnG9pH2Ukjk';
 
+function suggestNumberedUnit(title, kind, units) {
+  // A single explicit site number in the event and a unique roster suffix.
+  const pattern = kind === 'Hoist' ? /\bHoist\s*#\s*(\d+)\b/i : /\b(?:TC|Tower Crane)\s*#\s*(\d+)\b/i;
+  const match = pattern.exec(String(title || ''));
+  if (!match || (title.match(/#/g) || []).length !== 1 || /^\s*(?:[\/-]|&|and|,|to)\s*\d/i.test(title.slice(match.index + match[0].length))) return null;
+  const numbered = units.map(unit => ({unit, numbers:(unit.rowNames || []).map(name => name.match(/#\s*(\d+)\s*$/)?.[1])}));
+  if (numbered.some(entry => !entry.numbers.length || entry.numbers.some(n => !n))) return null;
+  const matches = numbered.filter(entry => entry.numbers.includes(match[1]));
+  if (matches.length !== 1 || new Set(matches[0].numbers).size !== 1) return null;
+  return matches[0].unit.asset || matches[0].unit.serial || null;
+}
+
 function eventPreviewRows(values, rosterProjects, today) {
   const expected = ['Event ID','Date','Month','Year','Market','Equipment Type','Event Type','Project #','Project Name'];
   if (!expected.every((label, i) => values[0]?.[i] === label)) throw Error('The Event Log headers have changed. Check columns A–I.');
@@ -58,11 +70,13 @@ function eventPreviewRows(values, rosterProjects, today) {
     seen.add(String(id));
     const kind = {'Tower Crane':'TC',Hoist:'Hoist'}[equipment];
     const units = project?.units?.filter(unit => unit.kind === kind) || [];
+    const suggestion = kind && suggestNumberedUnit(title, kind, units);
     if (!kind) issues.push('Check equipment type');
     else if (project && !units.length) issues.push('No matching equipment type on roster');
+    else if (suggestion) issues.push('Confirm suggested unit');
     else if (units.length > 1) issues.push('Multiple units of this type');
     return [{row:i+2, id, day:validDay ? Math.floor(day) : null, upcoming:!validDay || Math.floor(day)>=today,
-      projectId, projectName:project?.name, title, equipment, type, issues}];
+      projectId, projectName:project?.name, suggestion, title, equipment, type, issues}];
   });
   for (const record of records) if (duplicates.has(String(record.id))) record.issues.push('Duplicate event ID');
   return records.sort((a,b) => (a.day ?? Infinity)-(b.day ?? Infinity) || a.row-b.row);
@@ -93,7 +107,7 @@ async function showEventPreview() {
         const dateLabel = r.day === null ? 'Undated' : new Date((r.day-25569)*86400000).toLocaleDateString('en-US',{timeZone:'UTC'});
         const link = 'https://docs.google.com/spreadsheets/d/'+eventLogId+'/edit#gid=1780491368&range=A'+r.row+':I'+r.row;
         return '<tr><td>'+esc(dateLabel)+'</td><td>'+esc([r.projectId,r.projectName].filter(Boolean).join(' · ') || 'Unmatched')+'</td><td>'+esc(r.type || '—')+
-          '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+'</td><td>'+esc(r.issues.join(' · ') || 'Project matched')+
+          '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+(r.suggestion?'<div class="small sub">Suggested: '+esc(r.suggestion)+'</div>':'')+'</td><td>'+esc(r.issues.join(' · ') || 'Project matched')+
           '</td><td><a target="_blank" rel="noopener" href="'+link+'">Row '+r.row+'</a></td></tr>';
       }).join('');
       document.getElementById('event-results').innerHTML = '<p>'+visible.length+' events · '+visible.filter(r=>r.issues.length).length+' need review</p>'+
