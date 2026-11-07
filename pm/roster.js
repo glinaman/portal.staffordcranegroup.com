@@ -96,16 +96,16 @@ function eventPreviewRows(values, rosterProjects, today) {
 }
 
 function eventImportCandidate(row, project) {
-  if (!project || !row.suggestion ||
-      row.issues.length !== 1 || row.issues[0] !== 'Confirm suggested unit') return null;
+  const manual = row.issues[0] === 'Multiple units of this type';
+  if (!project || row.issues.length !== 1 || (!manual && row.issues[0] !== 'Confirm suggested unit')) return null;
   const crane = row.equipment === 'Tower Crane';
   const type = crane ? (['Erection','Climb','Dismantle'].includes(row.type) && row.type) : new Map([['Install','Installation'],['Installation','Installation'],['Jump','Jump'],['Dismantle','Dismantle']]).get(row.type);
   if (!type) return null;
-  const units = (project.units || []).filter(u => u.kind === (crane ? 'TC' : 'Hoist') && (u.asset || u.serial) === row.suggestion);
-  if (units.length !== 1) return null;
-  const key = encodeURIComponent(JSON.stringify([units[0].asset || '', units[0].serial || '']));
-  const unit = {key, label:[units[0].asset, units[0].serial].filter(Boolean).join(' / ')};
-  return {type, unit, kind:crane ? 'Tower crane' : 'Hoist', date:new Date((row.day-25569)*86400000).toISOString().slice(0,10)};
+  const options = (project.units || [])
+    .filter(u => u.kind === (crane ? 'TC' : 'Hoist') && (u.asset || u.serial) && (manual || (u.asset || u.serial) === row.suggestion))
+    .map(u => ({key:encodeURIComponent(JSON.stringify([u.asset || '',u.serial || ''])), label:[u.asset,u.serial].filter(Boolean).join(' / ')}));
+  if (!options.length || (!manual && options.length !== 1)) return null;
+  return {type, options, manual, kind:crane ? 'Tower crane' : 'Hoist', date:new Date((row.day-25569)*86400000).toISOString().slice(0,10)};
 }
 
 function importedEvent(sourceId) {
@@ -119,8 +119,9 @@ function importedEvent(sourceId) {
 function matchesImportedUnit(saved, row, candidate) {
   const units = saved.event.units || saved.event.hoists;
   return candidate && saved.projectId === row.projectId && saved.event.kind === candidate.kind &&
-    saved.event.type === candidate.type && units?.length === 1 &&
-    units[0].key === candidate.unit.key;
+    saved.event.type === candidate.type && units?.length > 0 &&
+    (candidate.manual ? saved.event.manualSourceTitle === row.title : units.length === 1) &&
+    units.every(u => candidate.options.some(option => option.key === u.key));
 }
 
 async function showEventPreview() {
@@ -140,7 +141,9 @@ async function showEventPreview() {
     showPanel('Event Log preview','<p>Review a suggested equipment match to add its dated checklist to this pilot. The Event Log is read-only.</p>'+
       '<div class="toolbar"><label for="event-period">Dates</label><select id="event-period"><option value="upcoming">Today forward and undated</option><option value="all">All dates</option></select>'+
       '<label for="event-project">Project number</label><input id="event-project" placeholder="All projects"></div><div id="event-results"></div>');
+    let selection = null;
     function filterResults() {
+      selection = null;
       const query = document.getElementById('event-project').value.trim();
       const upcoming = document.getElementById('event-period').value === 'upcoming';
       const visible = rows.filter(r => (!upcoming || r.upcoming) && r.projectId.includes(query));
@@ -154,7 +157,7 @@ async function showEventPreview() {
         let review = esc(r.issues.join(' · ') || 'Project matched');
         if (saved) review = compatible ? (moved ? 'Date changed from '+esc(saved.event.date) : 'Already imported') : 'Imported event · check source match';
         if (saved ? (!compatible || moved) : r.issues.length) needsReview++;
-        const button = candidate && (!saved || moved) ? '<br><button data-review-event="'+r.row+'">'+(moved?'Review date change':'Review event')+'</button>' : '';
+        const button = candidate && (!saved || moved) ? '<br><button data-review-event="'+r.row+'">'+(moved?'Review date change':candidate.manual?'Select equipment':'Review event')+'</button>' : '';
         const link = 'https://docs.google.com/spreadsheets/d/'+eventLogId+'/edit#gid=1780491368&range=A'+r.row+':I'+r.row;
         return '<tr><td>'+esc(dateLabel)+'</td><td>'+esc([r.projectId,r.projectName].filter(Boolean).join(' · ') || 'Unmatched')+'</td><td>'+esc(r.type || '—')+
           '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+(r.suggestion?'<div class="small sub">Suggested: '+esc(r.suggestion)+'</div>':'')+'</td><td>'+review+button+
@@ -174,11 +177,26 @@ async function showEventPreview() {
       const candidate = row && eventImportCandidate(row, project);
       const saved = row && importedEvent(row.id);
       if (!candidate || (saved && (!matchesImportedUnit(saved,row,candidate) || saved.event.date === candidate.date))) return;
-      const {type, unit, kind, date} = candidate;
+      const {type, options, manual, kind, date} = candidate;
+      const results = document.getElementById('event-results');
+      if (button.dataset.reviewEvent && manual && !saved && !button.hasAttribute('data-accept-selection')) {
+        selection = null;
+        results.innerHTML = '<section class="card item"><h2>Select equipment</h2><p>'+esc(project.id+' · '+project.name+' · '+type+' · '+date)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
+          '<fieldset><legend>'+esc(kind)+' units for this event</legend>'+options.map((u,i)=>'<label><input style="width:auto" type="checkbox" name="log-unit" value="'+i+'"> '+esc(u.label)+'</label>').join('')+'</fieldset>'+
+          '<div class="toolbar"><button data-cancel-review>Cancel</button><button data-review-event="'+row.row+'" data-accept-selection>Review selection</button></div></section>';
+        return;
+      }
+      if (manual && !saved && button.dataset.reviewEvent) {
+        const checked = new Set(Array.from(results.querySelectorAll('input[name="log-unit"]:checked'), input => Number(input.value)));
+        selection = {row:row.row, units:options.filter((u,i)=>checked.has(i))};
+        if (!selection.units.length) { notify('Select at least one unit.'); return; }
+      }
+      const units = saved ? (saved.event.units || saved.event.hoists) : manual ? (selection?.row === row.row ? selection.units : []) : options;
+      if (!units.length) return;
       if (button.dataset.reviewEvent) {
         document.getElementById('event-results').innerHTML = '<section class="card item" aria-labelledby="review-title">'+
           '<h2 id="review-title" tabindex="-1">Review '+esc(type)+' event</h2><p>'+esc(project.id)+' · '+esc(project.name)+'</p>'+
-          '<p>'+(saved?'Current date: '+esc(saved.event.date)+'<br>Event Log date: ':'Date: ')+esc(date)+'<br>Equipment: '+esc(unit.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
+          '<p>'+(saved?'Current date: '+esc(saved.event.date)+'<br>Event Log date: ':'Date: ')+esc(date)+'<br>Equipment: '+esc(units.map(u=>u.label).join(', '))+'</p><p>Event Log: '+esc(row.title)+'</p>'+
           '<div class="toolbar"><button data-cancel-review>Cancel</button><button class="primary" data-create-event="'+row.row+'" data-prior-date="'+esc(saved?.event.date || '')+'">'+(saved?'Update event date':'Create event checklist')+'</button></div></section>';
         document.getElementById('review-title').focus();
         return;
@@ -206,7 +224,7 @@ async function showEventPreview() {
           const state = structuredClone(fresh[project.id] || {items:[],events:[],started:{}});
           seedProjectChecklist(state,kind);
           const id = 'event-log-'+row.id;
-          state.events.push({id, eventLogId:String(row.id), kind, type, date, [kind === 'Hoist' ? 'hoists' : 'units']:[unit]});
+          state.events.push({id, eventLogId:String(row.id), kind, type, date, ...(manual ? {manualSourceTitle:row.title} : {}), [kind === 'Hoist' ? 'hoists' : 'units']:units});
           if (kind === 'Hoist') seedHoistChecklist(project,state);
           else seedCraneEvent(state,type,id);
           const next = {...fresh, [project.id]:state};
