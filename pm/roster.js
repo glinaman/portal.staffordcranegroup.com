@@ -82,6 +82,23 @@ function eventPreviewRows(values, rosterProjects, today) {
   return records.sort((a,b) => (a.day ?? Infinity)-(b.day ?? Infinity) || a.row-b.row);
 }
 
+function hoistImportCandidate(row, project) {
+  if (!project || row.equipment !== 'Hoist' || !row.suggestion ||
+      row.issues.length !== 1 || row.issues[0] !== 'Confirm suggested unit') return null;
+  const type = new Map([['Install','Installation'],['Installation','Installation'],['Jump','Jump'],['Dismantle','Dismantle']]).get(row.type);
+  if (!type) return null;
+  const units = (project.units || []).filter(u => u.kind === 'Hoist' && (u.asset || u.serial) === row.suggestion);
+  if (units.length !== 1) return null;
+  const key = encodeURIComponent(JSON.stringify([units[0].asset || '', units[0].serial || '']));
+  const hoist = importedHoists(project).find(u => u.key === key);
+  if (!hoist) return null;
+  return {type, hoist, date:new Date((row.day-25569)*86400000).toISOString().slice(0,10)};
+}
+
+function importedEvent(sourceId) {
+  return Object.values(copies).some(state => state.events?.some(event => event.eventLogId === String(sourceId)));
+}
+
 async function showEventPreview() {
   showPanel('Event Log preview','<p>Waiting for Google sign-in…</p>');
   const heading = document.querySelector('#app h1');
@@ -96,7 +113,7 @@ async function showEventPreview() {
     const data = await response.json();
     if (!heading.isConnected) return;
     const rows = eventPreviewRows(data.values || [], activeProjects(), phoenixSheetDay());
-    showPanel('Event Log preview','<p>Read-only · Project numbers match against the current roster. Equipment types come from the Event Log.</p>'+
+    showPanel('Event Log preview','<p>Review a suggested hoist event to add its dated checklist to this pilot. The Event Log is read-only.</p>'+
       '<div class="toolbar"><label for="event-period">Dates</label><select id="event-period"><option value="upcoming">Today forward and undated</option><option value="all">All dates</option></select>'+
       '<label for="event-project">Project number</label><input id="event-project" placeholder="All projects"></div><div id="event-results"></div>');
     function filterResults() {
@@ -105,16 +122,52 @@ async function showEventPreview() {
       const visible = rows.filter(r => (!upcoming || r.upcoming) && r.projectId.includes(query));
       const body = visible.map(r => {
         const dateLabel = r.day === null ? 'Undated' : new Date((r.day-25569)*86400000).toLocaleDateString('en-US',{timeZone:'UTC'});
+        const saved = importedEvent(r.id);
+        const candidate = hoistImportCandidate(r, projects.find(p => p.id === r.projectId));
+        const review = saved ? 'Already imported' : esc(r.issues.join(' · ') || 'Project matched');
+        const button = candidate && !saved ? '<br><button data-review-event="'+r.row+'">Review event</button>' : '';
         const link = 'https://docs.google.com/spreadsheets/d/'+eventLogId+'/edit#gid=1780491368&range=A'+r.row+':I'+r.row;
         return '<tr><td>'+esc(dateLabel)+'</td><td>'+esc([r.projectId,r.projectName].filter(Boolean).join(' · ') || 'Unmatched')+'</td><td>'+esc(r.type || '—')+
-          '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+(r.suggestion?'<div class="small sub">Suggested: '+esc(r.suggestion)+'</div>':'')+'</td><td>'+esc(r.issues.join(' · ') || 'Project matched')+
+          '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+(r.suggestion?'<div class="small sub">Suggested: '+esc(r.suggestion)+'</div>':'')+'</td><td>'+review+button+
           '</td><td><a target="_blank" rel="noopener" href="'+link+'">Row '+r.row+'</a></td></tr>';
       }).join('');
-      document.getElementById('event-results').innerHTML = '<p>'+visible.length+' events · '+visible.filter(r=>r.issues.length).length+' need review</p>'+
+      document.getElementById('event-results').innerHTML = '<p>'+visible.length+' events · '+visible.filter(r=>r.issues.length && !importedEvent(r.id)).length+' need review</p>'+
         (visible.length ? '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Project</th><th>Event</th><th>Equipment</th><th>Match review</th><th>Source</th></tr></thead><tbody>'+body+'</tbody></table></div>' : '<p>No events match these filters.</p>');
     }
     document.getElementById('event-period').onchange = filterResults;
     document.getElementById('event-project').oninput = filterResults;
+    document.getElementById('event-results').onclick = async event => {
+      const button = event.target.closest('[data-review-event]');
+      if (!button) return;
+      const row = rows.find(r => r.row === Number(button.dataset.reviewEvent));
+      const project = activeProjects().find(p => p.id === row?.projectId);
+      const candidate = row && hoistImportCandidate(row, project);
+      if (!candidate || importedEvent(row.id)) return;
+      const {type, hoist, date} = candidate;
+      if (!confirm('Create '+type+' checklist for '+project.id+' · '+project.name+'?\n'+date+' · '+hoist.label+'\nEvent Log: '+row.title)) return;
+      button.disabled = true;
+      try {
+        await navigator.locks.request('scg-pm-event-import', () => {
+          const key = 'scg-tc-checklists-v1';
+          const fresh = JSON.parse(memberStorage.getItem(key) || '{}');
+          copies = fresh;
+          if (importedEvent(row.id)) return;
+          // Build the event and its tasks on a copy, then persist them together.
+          const state = structuredClone(fresh[project.id] || {items:[],events:[],started:{}});
+          state.started ||= {'Tower crane':true};
+          state.started.Hoist = true;
+          state.events.push({id:'event-log-'+row.id, eventLogId:String(row.id), kind:'Hoist', type, date, hoists:[hoist]});
+          seedHoistChecklist(project, state);
+          const next = {...fresh, [project.id]:state};
+          memberStorage.setItem(key, JSON.stringify(next));
+          copies = next;
+        });
+        filterResults();
+      } catch {
+        notify('Could not save the event in this browser. Reload and try again.');
+        button.disabled = false;
+      }
+    };
     filterResults();
   } catch (error) {
     if (heading.isConnected) showPanel('Event Log preview','<p>'+esc(error.message)+'</p><button data-roster="event-preview">Try again</button>');
