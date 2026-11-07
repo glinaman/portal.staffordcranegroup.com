@@ -137,14 +137,22 @@ async function showEventPreview() {
     document.getElementById('event-period').onchange = filterResults;
     document.getElementById('event-project').oninput = filterResults;
     document.getElementById('event-results').onclick = async event => {
-      const button = event.target.closest('[data-review-event]');
+      if (event.target.closest('[data-cancel-review]')) { filterResults(); return; }
+      const button = event.target.closest('[data-review-event], [data-create-event]');
       if (!button) return;
-      const row = rows.find(r => r.row === Number(button.dataset.reviewEvent));
+      const row = rows.find(r => r.row === Number(button.dataset.reviewEvent || button.dataset.createEvent));
       const project = activeProjects().find(p => p.id === row?.projectId);
       const candidate = row && hoistImportCandidate(row, project);
       if (!candidate || importedEvent(row.id)) return;
       const {type, hoist, date} = candidate;
-      if (!confirm('Create '+type+' checklist for '+project.id+' · '+project.name+'?\n'+date+' · '+hoist.label+'\nEvent Log: '+row.title)) return;
+      if (button.dataset.reviewEvent) {
+        document.getElementById('event-results').innerHTML = '<section class="card item" aria-labelledby="review-title">'+
+          '<h2 id="review-title" tabindex="-1">Review '+esc(type)+' event</h2><p>'+esc(project.id)+' · '+esc(project.name)+'</p>'+
+          '<p>Date: '+esc(date)+'<br>Equipment: '+esc(hoist.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
+          '<div class="toolbar"><button data-cancel-review>Cancel</button><button class="primary" data-create-event="'+row.row+'">Create event checklist</button></div></section>';
+        document.getElementById('review-title').focus();
+        return;
+      }
       button.disabled = true;
       try {
         await navigator.locks.request('scg-pm-event-import', () => {
