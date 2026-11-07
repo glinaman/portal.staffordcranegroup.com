@@ -40,6 +40,15 @@ const eventLogId = '10JC-bLNOb3u2vh1hRu4oWTow50eVFN_fRnG9pH2Ukjk';
 function suggestNumberedUnit(title, kind, units) {
   // A single explicit site number in the event and a unique roster suffix.
   const pattern = kind === 'Hoist' ? /\bHoist\s*#\s*(\d+)\b/i : /\b(?:TC|Tower Crane)\s*#\s*(\d+)\b/i;
+  if (kind === 'TC') {
+    const labels = [...String(title || '').matchAll(/\b(?:TC|Tower Crane)\s*#?\s*(\d+)\b/gi)];
+    if (!labels.length && units.length === 1 && !/[#&]|\b(?:cranes|TCs)\b/i.test(title || '')) return units[0].asset || units[0].serial;
+    if (labels.length !== 1 || /^\s*(?:[\/-]|&|and|,|to)\s*#?\d/i.test(title.slice(labels[0].index + labels[0][0].length))) return null;
+    const numbers = units.map(u => new Set((u.rowNames || []).map(n => n.match(/#\s*(\d+)\s*$/)?.[1])));
+    if (numbers.some(set => set.size !== 1 || set.has(undefined))) return null;
+    const matches = units.filter((u,i) => numbers[i].has(labels[0][1]));
+    return matches.length === 1 ? matches[0].asset || matches[0].serial : null;
+  }
   const match = pattern.exec(String(title || ''));
   if (!match || (title.match(/#/g) || []).length !== 1 || /^\s*(?:[\/-]|&|and|,|to)\s*\d/i.test(title.slice(match.index + match[0].length))) return null;
   const numbered = units.map(unit => ({unit, numbers:(unit.rowNames || []).map(name => name.match(/#\s*(\d+)\s*$/)?.[1])}));
@@ -71,6 +80,10 @@ function eventPreviewRows(values, rosterProjects, today) {
     const kind = {'Tower Crane':'TC',Hoist:'Hoist'}[equipment];
     const units = project?.units?.filter(unit => unit.kind === kind) || [];
     const suggestion = kind && suggestNumberedUnit(title, kind, units);
+    if (kind === 'TC') {
+      const actions = [['Erection', /\berect(?:ion)?\b/i], ['Climb', /\bclimb\b/i], ['Dismantle', /\bdismantl(?:e|ing)\b/i]];
+      if (actions.some(([action,pattern]) => action !== type && pattern.test(title || ''))) issues.push('Event type conflicts with source title');
+    }
     if (!kind) issues.push('Check equipment type');
     else if (project && !units.length) issues.push('No matching equipment type on roster');
     else if (suggestion) issues.push('Confirm suggested unit');
@@ -82,17 +95,17 @@ function eventPreviewRows(values, rosterProjects, today) {
   return records.sort((a,b) => (a.day ?? Infinity)-(b.day ?? Infinity) || a.row-b.row);
 }
 
-function hoistImportCandidate(row, project) {
-  if (!project || row.equipment !== 'Hoist' || !row.suggestion ||
+function eventImportCandidate(row, project) {
+  if (!project || !row.suggestion ||
       row.issues.length !== 1 || row.issues[0] !== 'Confirm suggested unit') return null;
-  const type = new Map([['Install','Installation'],['Installation','Installation'],['Jump','Jump'],['Dismantle','Dismantle']]).get(row.type);
+  const crane = row.equipment === 'Tower Crane';
+  const type = crane ? (['Erection','Climb','Dismantle'].includes(row.type) && row.type) : new Map([['Install','Installation'],['Installation','Installation'],['Jump','Jump'],['Dismantle','Dismantle']]).get(row.type);
   if (!type) return null;
-  const units = (project.units || []).filter(u => u.kind === 'Hoist' && (u.asset || u.serial) === row.suggestion);
+  const units = (project.units || []).filter(u => u.kind === (crane ? 'TC' : 'Hoist') && (u.asset || u.serial) === row.suggestion);
   if (units.length !== 1) return null;
   const key = encodeURIComponent(JSON.stringify([units[0].asset || '', units[0].serial || '']));
-  const hoist = importedHoists(project).find(u => u.key === key);
-  if (!hoist) return null;
-  return {type, hoist, date:new Date((row.day-25569)*86400000).toISOString().slice(0,10)};
+  const unit = {key, label:[units[0].asset, units[0].serial].filter(Boolean).join(' / ')};
+  return {type, unit, kind:crane ? 'Tower crane' : 'Hoist', date:new Date((row.day-25569)*86400000).toISOString().slice(0,10)};
 }
 
 function importedEvent(sourceId) {
@@ -104,9 +117,10 @@ function importedEvent(sourceId) {
 }
 
 function matchesImportedUnit(saved, row, candidate) {
-  return candidate && saved.projectId === row.projectId && saved.event.kind === 'Hoist' &&
-    saved.event.type === candidate.type && saved.event.hoists?.length === 1 &&
-    saved.event.hoists[0].key === candidate.hoist.key;
+  const units = saved.event.units || saved.event.hoists;
+  return candidate && saved.projectId === row.projectId && saved.event.kind === candidate.kind &&
+    saved.event.type === candidate.type && units?.length === 1 &&
+    units[0].key === candidate.unit.key;
 }
 
 async function showEventPreview() {
@@ -123,7 +137,7 @@ async function showEventPreview() {
     const data = await response.json();
     if (!heading.isConnected) return;
     const rows = eventPreviewRows(data.values || [], activeProjects(), phoenixSheetDay());
-    showPanel('Event Log preview','<p>Review a suggested hoist event to add its dated checklist to this pilot. The Event Log is read-only.</p>'+
+    showPanel('Event Log preview','<p>Review a suggested equipment match to add its dated checklist to this pilot. The Event Log is read-only.</p>'+
       '<div class="toolbar"><label for="event-period">Dates</label><select id="event-period"><option value="upcoming">Today forward and undated</option><option value="all">All dates</option></select>'+
       '<label for="event-project">Project number</label><input id="event-project" placeholder="All projects"></div><div id="event-results"></div>');
     function filterResults() {
@@ -134,7 +148,7 @@ async function showEventPreview() {
       const body = visible.map(r => {
         const dateLabel = r.day === null ? 'Undated' : new Date((r.day-25569)*86400000).toLocaleDateString('en-US',{timeZone:'UTC'});
         const saved = importedEvent(r.id);
-        const candidate = hoistImportCandidate(r, projects.find(p => p.id === r.projectId));
+        const candidate = eventImportCandidate(r, projects.find(p => p.id === r.projectId));
         const compatible = saved && matchesImportedUnit(saved, r, candidate);
         const moved = compatible && saved.event.date !== candidate.date;
         let review = esc(r.issues.join(' · ') || 'Project matched');
@@ -157,14 +171,14 @@ async function showEventPreview() {
       if (!button) return;
       const row = rows.find(r => r.row === Number(button.dataset.reviewEvent || button.dataset.createEvent));
       const project = activeProjects().find(p => p.id === row?.projectId);
-      const candidate = row && hoistImportCandidate(row, project);
+      const candidate = row && eventImportCandidate(row, project);
       const saved = row && importedEvent(row.id);
       if (!candidate || (saved && (!matchesImportedUnit(saved,row,candidate) || saved.event.date === candidate.date))) return;
-      const {type, hoist, date} = candidate;
+      const {type, unit, kind, date} = candidate;
       if (button.dataset.reviewEvent) {
         document.getElementById('event-results').innerHTML = '<section class="card item" aria-labelledby="review-title">'+
           '<h2 id="review-title" tabindex="-1">Review '+esc(type)+' event</h2><p>'+esc(project.id)+' · '+esc(project.name)+'</p>'+
-          '<p>'+(saved?'Current date: '+esc(saved.event.date)+'<br>Event Log date: ':'Date: ')+esc(date)+'<br>Equipment: '+esc(hoist.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
+          '<p>'+(saved?'Current date: '+esc(saved.event.date)+'<br>Event Log date: ':'Date: ')+esc(date)+'<br>Equipment: '+esc(unit.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
           '<div class="toolbar"><button data-cancel-review>Cancel</button><button class="primary" data-create-event="'+row.row+'" data-prior-date="'+esc(saved?.event.date || '')+'">'+(saved?'Update event date':'Create event checklist')+'</button></div></section>';
         document.getElementById('review-title').focus();
         return;
@@ -190,10 +204,11 @@ async function showEventPreview() {
           if (existing) return;
           // Build the event and its tasks on a copy, then persist them together.
           const state = structuredClone(fresh[project.id] || {items:[],events:[],started:{}});
-          state.started ||= {'Tower crane':true};
-          state.started.Hoist = true;
-          state.events.push({id:'event-log-'+row.id, eventLogId:String(row.id), kind:'Hoist', type, date, hoists:[hoist]});
-          seedHoistChecklist(project, state);
+          seedProjectChecklist(state,kind);
+          const id = 'event-log-'+row.id;
+          state.events.push({id, eventLogId:String(row.id), kind, type, date, [kind === 'Hoist' ? 'hoists' : 'units']:[unit]});
+          if (kind === 'Hoist') seedHoistChecklist(project,state);
+          else seedCraneEvent(state,type,id);
           const next = {...fresh, [project.id]:state};
           memberStorage.setItem(key, JSON.stringify(next));
           copies = next;
