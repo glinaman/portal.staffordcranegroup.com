@@ -128,8 +128,7 @@ tasks = function(p) {
   if (state?.started?.Hoist && seedHoistChecklist(p, state)) saveCopies();
   return (copies[p.id]?.items || []).map(item => ({...item,...changes[p.id+'-'+item.id]}));
 };
-function startChecklist(p,kind) {
-  const state = copies[p.id] ||= {items:[],events:[],started:{}};
+function seedProjectChecklist(state,kind) {
   // Existing project copies contain a tower checklist.
   state.started ||= {'Tower crane':true};
   if (state.started[kind]) return;
@@ -138,15 +137,20 @@ function startChecklist(p,kind) {
     const rows=templateRows.filter(r=>!['Erection Planning','Erection review','Climb Planning','Dismantle Planning'].includes(r[0]));
     state.items.push(...createRows(rows));
   }
+}
+function startChecklist(p,kind) {
+  const state = copies[p.id] ||= {items:[],events:[],started:{}};
+  seedProjectChecklist(state,kind);
   saveCopies();
+}
+function seedCraneEvent(state,type,id) {
+  const rows=templateRows.filter(r=>r[0]===type+' Planning'||(type==='Erection'&&r[0]==='Erection review'));
+  state.items.push(...createRows(rows,id));
 }
 function addChecklistEvent(p,kind,type,date,hoists = []) {
   const state=copies[p.id], id='event-'+crypto.randomUUID();
   state.events.push({id,kind,type,date,...(kind === 'Hoist' ? {hoists} : {})});
-  if (kind==='Tower crane') {
-    const rows=templateRows.filter(r=>r[0]===type+' Planning'||(type==='Erection'&&r[0]==='Erection review'));
-    state.items.push(...createRows(rows,id));
-  }
+  if (kind==='Tower crane') seedCraneEvent(state,type,id);
   saveCopies();
 }
 function checklistScreen(p,kind) {
@@ -173,7 +177,7 @@ function checklistScreen(p,kind) {
   }
   const source=kind==='Tower crane'?'<a href="https://docs.google.com/spreadsheets/d/14mK1ttOG3UVNgnnINnLrDeOk7ihgGXnJw8Bz43HdzcA/edit#gid=1175358047" target="_blank" rel="noopener">Standard checklist source ↗</a>':'';
   return '<div class="toolbar"><button id="newchecklistevent">Add event checklist</button>'+source+'</div>'+section(kind+' checklist')+
-    state.events.filter(ev=>belongsTo(ev,kind)).map(ev=>section(ev.type+' · '+(ev.date?date(ev.date):'Date TBD')+(ev.kind==='Hoist'?' · '+(ev.hoists?.map(u=>u.label).join(', ') || 'Hoists unspecified'):''),ev.id)).join('');
+    state.events.filter(ev=>belongsTo(ev,kind)).map(ev=>section(ev.type+' · '+(ev.date?date(ev.date):'Date TBD')+(ev.kind==='Hoist'?' · '+(ev.hoists?.map(u=>u.label).join(', ') || 'Hoists unspecified'):(ev.units?.length?' · '+ev.units.map(u=>u.label).join(', '):'')),ev.id)).join('');
 }
 detail=function(){
   const p=projects.find(p=>p.id===selected);
