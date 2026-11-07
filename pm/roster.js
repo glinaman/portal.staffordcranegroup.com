@@ -96,7 +96,17 @@ function hoistImportCandidate(row, project) {
 }
 
 function importedEvent(sourceId) {
-  return Object.values(copies).some(state => state.events?.some(event => event.eventLogId === String(sourceId)));
+  for (const [projectId,state] of Object.entries(copies)) {
+    const event = state.events?.find(e => e.eventLogId === String(sourceId));
+    if (event) return {projectId,event};
+  }
+  return null;
+}
+
+function matchesImportedUnit(saved, row, candidate) {
+  return candidate && saved.projectId === row.projectId && saved.event.kind === 'Hoist' &&
+    saved.event.type === candidate.type && saved.event.hoists?.length === 1 &&
+    saved.event.hoists[0].key === candidate.hoist.key;
 }
 
 async function showEventPreview() {
@@ -120,18 +130,23 @@ async function showEventPreview() {
       const query = document.getElementById('event-project').value.trim();
       const upcoming = document.getElementById('event-period').value === 'upcoming';
       const visible = rows.filter(r => (!upcoming || r.upcoming) && r.projectId.includes(query));
+      let needsReview = 0;
       const body = visible.map(r => {
         const dateLabel = r.day === null ? 'Undated' : new Date((r.day-25569)*86400000).toLocaleDateString('en-US',{timeZone:'UTC'});
         const saved = importedEvent(r.id);
         const candidate = hoistImportCandidate(r, projects.find(p => p.id === r.projectId));
-        const review = saved ? 'Already imported' : esc(r.issues.join(' · ') || 'Project matched');
-        const button = candidate && !saved ? '<br><button data-review-event="'+r.row+'">Review event</button>' : '';
+        const compatible = saved && matchesImportedUnit(saved, r, candidate);
+        const moved = compatible && saved.event.date !== candidate.date;
+        let review = esc(r.issues.join(' · ') || 'Project matched');
+        if (saved) review = compatible ? (moved ? 'Date changed from '+esc(saved.event.date) : 'Already imported') : 'Imported event · check source match';
+        if (saved ? (!compatible || moved) : r.issues.length) needsReview++;
+        const button = candidate && (!saved || moved) ? '<br><button data-review-event="'+r.row+'">'+(moved?'Review date change':'Review event')+'</button>' : '';
         const link = 'https://docs.google.com/spreadsheets/d/'+eventLogId+'/edit#gid=1780491368&range=A'+r.row+':I'+r.row;
         return '<tr><td>'+esc(dateLabel)+'</td><td>'+esc([r.projectId,r.projectName].filter(Boolean).join(' · ') || 'Unmatched')+'</td><td>'+esc(r.type || '—')+
           '<div class="small sub">'+esc(r.title || '')+'</div></td><td>'+esc(r.equipment || '—')+(r.suggestion?'<div class="small sub">Suggested: '+esc(r.suggestion)+'</div>':'')+'</td><td>'+review+button+
           '</td><td><a target="_blank" rel="noopener" href="'+link+'">Row '+r.row+'</a></td></tr>';
       }).join('');
-      document.getElementById('event-results').innerHTML = '<p>'+visible.length+' events · '+visible.filter(r=>r.issues.length && !importedEvent(r.id)).length+' need review</p>'+
+      document.getElementById('event-results').innerHTML = '<p>'+visible.length+' events · '+needsReview+' need review</p>'+
         (visible.length ? '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Project</th><th>Event</th><th>Equipment</th><th>Match review</th><th>Source</th></tr></thead><tbody>'+body+'</tbody></table></div>' : '<p>No events match these filters.</p>');
     }
     document.getElementById('event-period').onchange = filterResults;
@@ -143,13 +158,14 @@ async function showEventPreview() {
       const row = rows.find(r => r.row === Number(button.dataset.reviewEvent || button.dataset.createEvent));
       const project = activeProjects().find(p => p.id === row?.projectId);
       const candidate = row && hoistImportCandidate(row, project);
-      if (!candidate || importedEvent(row.id)) return;
+      const saved = row && importedEvent(row.id);
+      if (!candidate || (saved && (!matchesImportedUnit(saved,row,candidate) || saved.event.date === candidate.date))) return;
       const {type, hoist, date} = candidate;
       if (button.dataset.reviewEvent) {
         document.getElementById('event-results').innerHTML = '<section class="card item" aria-labelledby="review-title">'+
           '<h2 id="review-title" tabindex="-1">Review '+esc(type)+' event</h2><p>'+esc(project.id)+' · '+esc(project.name)+'</p>'+
-          '<p>Date: '+esc(date)+'<br>Equipment: '+esc(hoist.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
-          '<div class="toolbar"><button data-cancel-review>Cancel</button><button class="primary" data-create-event="'+row.row+'">Create event checklist</button></div></section>';
+          '<p>'+(saved?'Current date: '+esc(saved.event.date)+'<br>Event Log date: ':'Date: ')+esc(date)+'<br>Equipment: '+esc(hoist.label)+'</p><p>Event Log: '+esc(row.title)+'</p>'+
+          '<div class="toolbar"><button data-cancel-review>Cancel</button><button class="primary" data-create-event="'+row.row+'" data-prior-date="'+esc(saved?.event.date || '')+'">'+(saved?'Update event date':'Create event checklist')+'</button></div></section>';
         document.getElementById('review-title').focus();
         return;
       }
@@ -159,7 +175,19 @@ async function showEventPreview() {
           const key = 'scg-tc-checklists-v1';
           const fresh = JSON.parse(memberStorage.getItem(key) || '{}');
           copies = fresh;
-          if (importedEvent(row.id)) return;
+          const existing = importedEvent(row.id);
+          if (button.dataset.priorDate) {
+            if (!existing || !matchesImportedUnit(existing,row,candidate) || existing.event.date !== button.dataset.priorDate) {
+              notify('The saved event changed. Review its current details.');
+              return;
+            }
+            const next = structuredClone(fresh);
+            next[project.id].events.find(e => e.id === existing.event.id).date = date;
+            memberStorage.setItem(key, JSON.stringify(next));
+            copies = next;
+            return;
+          }
+          if (existing) return;
           // Build the event and its tasks on a copy, then persist them together.
           const state = structuredClone(fresh[project.id] || {items:[],events:[],started:{}});
           state.started ||= {'Tower crane':true};
