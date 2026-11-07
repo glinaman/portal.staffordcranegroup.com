@@ -29,7 +29,12 @@ function parseUtilization(response, today = phoenixSheetDay()) {
     const status = start <= today ? 'Active' : green ? 'Under Contract' : 'Verbal/LOI';
     const project = records.get(id) || {id,name,customer,location:[10,11].map(i=>cellValue(cells[i])).filter(Boolean).join(', '),status,units:[]};
     if(status==='Active' || (status==='Under Contract' && project.status!=='Active')) project.status=status;
-    if(!project.units.some(u=>u.kind===kind && u.serial===serial && u.asset===asset)) project.units.push({kind,asset,serial});
+    let unit = project.units.find(u => u.kind === kind && u.serial === serial && u.asset === asset);
+    if (!unit) {
+      unit = {kind,asset,serial,rowNames:[]};
+      project.units.push(unit);
+    }
+    if (name && !unit.rowNames.includes(name)) unit.rowNames.push(name);
     records.set(id,project);
   }
   const projects = [...records.values()].map(p=>{
